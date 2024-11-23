@@ -38,7 +38,7 @@ export default function Description() {
       {/* Left Section */}
       <div className="flex flex-col justify-center items-start">
         <div className="text-white text-5xl font-semibold font-Poppins max-[1300px]:text-3xl max-[1127px]:text-5xl max-[607px]:text-4xl">
-          Chat easy, chat instantly wherever you go
+          Chat easy, chat instantly <br></br> wherever you go
         </div>
         <p className="mt-10 text-white text-lg font-semibold font-Roboto">
           The easiest & fastest way to live chat

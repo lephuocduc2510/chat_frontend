@@ -8,7 +8,7 @@ import Home from './pages/Home';
 import Login,{action as LoginAction}from './pages/Login';
 import Signup,{action as SignupAction} from './pages/Signup';
 import LoginTest from './pages/testLogin';
-// import HomeChat from './pages/HomeChat';
+import HomeChat from './pages/HomeChat';
 // import Info from './pages/Info';
 // import Settings from './pages/Settings';
 // import NotFoundPage from './pages/404Page';
@@ -36,8 +36,13 @@ const router = createBrowserRouter([
     element:<Signup></Signup>,
     action:SignupAction
   },
+  {
+    path:'chat',
+    element:<HomeChat></HomeChat>,
+  
+  },
   // {
-  //   path:'home',
+  //   path:'/',
   //   element:<Root></Root>,
   //   loader:loadingAction,
   //   children:[

@@ -66,13 +66,13 @@ export default function NavList() {
           </li>
         </ul>
       </div>
-      <div className="flex items-center gap-6">
+      {/* <div className="flex items-center gap-6">
         <ion-icon
           name="grid"
           className="cursor-pointer md:hidden"
           onClick={onToggleMenu}
         />
-      </div>
+      </div> */}
     </div>
   );
 }
