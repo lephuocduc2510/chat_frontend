@@ -7,7 +7,6 @@ import Tooltip from "@mui/material/Tooltip";
 interface RecieverMessageProps {
   imageUrl?: string; 
   content: string; 
-  messages: any[]; // Mảng tin nhắn (có thể tùy chỉnh thêm theo kiểu dữ liệu bạn đang dùng)
   index: number; // Vị trí tin nhắn trong mảng messages
   name: string; // Tên người nhận tin nhắn
   time: string; // Thời gian tin nhắn
@@ -16,7 +15,6 @@ interface RecieverMessageProps {
 export default function RecieverMessage({
   imageUrl,
   content,
-  messages,
   index,
   name,
   time,
@@ -24,18 +22,21 @@ export default function RecieverMessage({
 
   const messageTime = new Date(time);
 
-  if (isSameUser(messages, index) ) {
-    return (
-      <div className="flex flex-row justify-start my-1">
-        <div className="bg-[#FFFFFF]  rounded-tr-xl ml-[45px] font-Roboto rounded-br-xl rounded-bl-xl box-border px-2 py-2  max-[900px]:text-sm flex justify-between">
-          <div>
-            {content}
-          </div>
-          <p className=" text-[11px] pl-2 pt-3 flex items-end font-medium">{`${String(messageTime.getHours() % 12 || 12).padStart(2, '0')}:${String(messageTime.getMinutes()).padStart(2, '0')} ${messageTime.getHours() >= 12 ? 'pm' : 'am'}`}</p>
-        </div>
-      </div>
-    );
-  }
+
+  
+  // if ((messages, index) ) {
+  //   return (
+  //     <div className="flex flex-row justify-start my-1">
+  //       <div className="bg-[#FFFFFF]  rounded-tr-xl ml-[45px] font-Roboto rounded-br-xl rounded-bl-xl box-border px-2 py-2  max-[900px]:text-sm flex justify-between">
+  //         <div>
+  //           {content}
+  //         </div>
+  //         <p className=" text-[11px] pl-2 pt-3 flex items-end font-medium">{`${String(messageTime.getHours() % 12 || 12).padStart(2, '0')}:${String(messageTime.getMinutes()).padStart(2, '0')} ${messageTime.getHours() >= 12 ? 'pm' : 'am'}`}</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
 
   return (
     <div className="max-w-[60%]">

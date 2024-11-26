@@ -86,7 +86,7 @@ export default function Main() {
     try {
       const decoded = jwtDecode(token);
       if (decoded) {
-        console.log("paylaod", decoded);
+        console.log("payload", decoded);
         if (decoded.role === "user") {
           message.success('Login success');
           window.location.href = '/home/message';  
@@ -99,7 +99,7 @@ export default function Main() {
         else
         {
           message.success('Login success');
-          window.location.href = '/home/massage';  
+          window.location.href = '/home/message';  
         }
          
       }

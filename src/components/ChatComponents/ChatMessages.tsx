@@ -11,6 +11,7 @@ import { isToday, isYesterday } from 'date-fns';
 import { selectChat, updateChat } from "../../redux/Chat/chatSlice";
 import { get } from "http";
 
+
 // Định nghĩa kiểu Message
 interface Message {
   messageId: number;
@@ -36,7 +37,6 @@ export default function ChatMessages() {
   const dispatch = useDispatch();
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const userId = storedData.id;
-
   // Redux: lấy thông tin phòng chat được chọn
   const selectedChat = useSelector((state: RootState) => state.chat.selectedChatId);
   const checkChatUpdate = useSelector((state: RootState) => state.chat.messages);
@@ -44,6 +44,9 @@ export default function ChatMessages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
+
+  
+  
   // Hàm lấy tin nhắn từ API
   const getMessages = async () => {
     if (!selectedChat) return;
@@ -57,9 +60,9 @@ export default function ChatMessages() {
       };
       const response = await axiosClient.get(`/api/Messages/room/${selectedChat}`, config);
       setMessages(response.data.result || []);
-    
+
       // dispatch(updateChat(response.data.result || []));
-  
+
     } catch (error) {
       console.error(selectedChat);
     } finally {
@@ -75,14 +78,14 @@ export default function ChatMessages() {
 
   useEffect(() => {
     getMessages();
-  }, [checkChatUpdate]);  
+  }, [checkChatUpdate]);
 
   // useEffect(() => {
-   
+
   //     setMessages(messagesRedux); // Cập nhật messages từ Redux
   //     console.log(messagesRedux);
   //     getMessages();
-    
+
   // }, [messagesRedux]);
 
   // Hàm format ngày
@@ -143,7 +146,6 @@ export default function ChatMessages() {
                 key={message.messageId}
                 name={userName}
                 imageUrl={userImage}
-                messages={[]}
                 index={index}
                 content={message.content}
                 time={message.sentAt}

@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { axiosClient } from "../../libraries/axiosClient";
 import { updateChat } from "../../redux/Chat/chatSlice";
+import { HubConnection } from "@microsoft/signalr";
 
 export default function Type() {
   const dispatch = useDispatch();
@@ -15,6 +16,7 @@ export default function Type() {
   const roomId = useSelector((state: RootState) => state.chat.selectedChatId);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const [messages, setMessages] = useState<string>('');
+  const [connection, setConnection] = useState<HubConnection | null>(null);
   const userId = storedData.id;
 
   const handleEmojiClick = (emoji: { native: string }) => {
@@ -24,6 +26,19 @@ export default function Type() {
   const messagesHandle = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessages(e.target.value);
   };
+
+  const sendMessage = async (message: string, fileHtml = null) => {
+    if (connection && message.trim()) {
+      try {
+        await connection.invoke("SendMessage", message, fileHtml || null);
+      } catch (err) {
+        console.error("Error sending message: ", err);
+      }
+    } else {
+      console.error("Connection not established or message is empty.");
+    }
+  };
+
 
   const handleSendMessage = async () => {
     if (!messages.trim()) return; // Kiểm tra xem tin nhắn có trống không
