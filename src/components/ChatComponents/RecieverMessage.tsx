@@ -5,28 +5,26 @@ import Tooltip from "@mui/material/Tooltip";
 
 // Định nghĩa kiểu dữ liệu cho props
 interface RecieverMessageProps {
-  img: string; // Đường dẫn hình ảnh người nhận
-  content: string; // Nội dung tin nhắn
+  imageUrl?: string; 
+  content: string; 
   messages: any[]; // Mảng tin nhắn (có thể tùy chỉnh thêm theo kiểu dữ liệu bạn đang dùng)
   index: number; // Vị trí tin nhắn trong mảng messages
   name: string; // Tên người nhận tin nhắn
-  isGroupChat: boolean; // Kiểm tra nếu là nhóm
   time: string; // Thời gian tin nhắn
 }
 
 export default function RecieverMessage({
-  img,
+  imageUrl,
   content,
   messages,
   index,
   name,
-  isGroupChat,
   time,
 }: RecieverMessageProps) {
 
   const messageTime = new Date(time);
 
-  if (isSameUser(messages, index) && isGroupChat) {
+  if (isSameUser(messages, index) ) {
     return (
       <div className="flex flex-row justify-start my-1">
         <div className="bg-[#FFFFFF]  rounded-tr-xl ml-[45px] font-Roboto rounded-br-xl rounded-bl-xl box-border px-2 py-2  max-[900px]:text-sm flex justify-between">
@@ -41,27 +39,40 @@ export default function RecieverMessage({
 
   return (
     <div className="max-w-[60%]">
-      <div className="flex flex-row justify-start my-1">
-        {isGroupChat && (
-          <Tooltip title={name} arrow placement="top-start">
-            <Avatar
-          alt="User-pic"
-          style={{
-            width: '48px', // Default width
-            height: '48px', // Default height
-          }}
-        />
-          </Tooltip>
-        )}
-        <div className="bg-[#FFFFFF] max-w-[100%] relative rounded-tr-lg ml-[1%] font-Roboto rounded-br-lg rounded-bl-lg box-border px-2 pt-2 pb-2 flex flex-col items-end max-[900px]:text-sm flex justify-between">
-          <p className="w-[100%] min-w-[50px] pe-5 pb-2" style={{ wordWrap: "break-word" }}>
-            {content}
-          </p>
-          <p className="absolute bottom-[3px] right-2 text-[9px] pl-2 flex items-end font-medium">
-            {`${String(messageTime.getHours() % 12 || 12).padStart(2, '0')}:${String(messageTime.getMinutes()).padStart(2, '0')} ${messageTime.getHours() >= 12 ? 'pm' : 'am'}`}
-          </p>
-        </div>
-      </div>
+     <div className="flex flex-row items-start my-2 gap-3">
+  {/* Avatar với tooltip */}
+  <Tooltip title={name} arrow placement="top-start">
+    <Avatar
+      alt="User-pic"
+      src={imageUrl || "https://via.placeholder.com/150"} // Nếu không có ảnh, sử dụng placeholder
+      style={{
+        width: '40px', // Kích thước avatar nhỏ hơn
+        height: '40px',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', // Hiệu ứng bóng
+      }}
+    />
+  </Tooltip>
+
+  {/* Nội dung tin nhắn */}
+  <div className="flex flex-col max-w-[85%]">
+    {/* Tên người nhắn */}
+    <p className="text-sm text-gray-800 font-medium mb-1">
+      {name}
+    </p>
+
+    {/* Tin nhắn */}
+    <div className="bg-[#0284C7] relative rounded-tl-lg rounded-tr-lg rounded-bl-lg font-Roboto rounded-br-lg text-white px-3 py-1 shadow-md flex flex-col gap-1">
+      <p className="w-full min-w-[50px] mt-1" style={{ wordWrap: "break-word" }}>
+        {content}
+      </p>
+      <p className="text-[10px] text-right text-gray-200 font-light">
+        {`${String(messageTime.getHours() % 12 || 12).padStart(2, '0')}:${String(messageTime.getMinutes()).padStart(2, '0')} ${messageTime.getHours() >= 12 ? 'PM' : 'AM'}`}
+      </p>
+    </div>
+  </div>
+</div>
+
+
     </div>
   );
 }

@@ -89,7 +89,7 @@ export default function Main() {
         console.log("paylaod", decoded);
         if (decoded.role === "user") {
           message.success('Login success');
-          window.location.href = '/home';  
+          window.location.href = '/home/message';  
           // window.location.href = '/management/users';  // Redirect to users management page
         }
         else if (decoded.role === "mod") {
@@ -99,7 +99,7 @@ export default function Main() {
         else
         {
           message.success('Login success');
-          window.location.href = '/users';  
+          window.location.href = '/home/massage';  
         }
          
       }
@@ -149,8 +149,6 @@ export default function Main() {
   };
 
 
-  const handleClickShowPassword = () => setShowPassword(!showPassword); // Toggle password visibility
-  const handleMouseDownPassword = (event: any) => event.preventDefault(); // Prevent default action on mouse down
 
   return (
     <div className='flex flex-col items-center h-[100vh] w-[100vw] relative overflow-hidden px-2'>
@@ -190,8 +188,8 @@ export default function Main() {
           rules={[
             { required: true, message: 'Please enter your password!' },
             {
-              min: 8,
-              message: 'Password must be at least 8 characters long!',
+              min: 6,
+              message: 'Password must be at least 6 characters long!',
             },
           ]}
           validateStatus={errorMessage ? 'error' : ''}

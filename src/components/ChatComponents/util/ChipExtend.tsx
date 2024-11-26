@@ -5,7 +5,7 @@ import Avatar from '@mui/material/Avatar';
 // Định nghĩa kiểu cho props
 interface ChipExtendProps {
   value: {
-    _id: string;
+    id: string;
     pic: string;
     name: string;
   };
@@ -15,7 +15,7 @@ interface ChipExtendProps {
 const ChipExtend: React.FC<ChipExtendProps> = ({ value, remove }) => {
 
   const handleDelete = () => {
-    remove(value._id); // Gọi hàm remove với _id của value
+    remove(value.id); // Gọi hàm remove với _id của value
   };
 
   return (

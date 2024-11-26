@@ -2,7 +2,7 @@ import React from 'react'
 import ChipExtend from './util/ChipExtend'
 
 interface User {
-  _id: string;
+  id: string;
   name: string;
   pic: string;
 }

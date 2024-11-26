@@ -5,15 +5,15 @@ import {
 } from "react-router-dom";
 import Home from './pages/Home';
 // import Service from './pages/Service';
-import Login,{action as LoginAction}from './pages/Login';
+import Login from './pages/Login';
 import Signup,{action as SignupAction} from './pages/Signup';
 import LoginTest from './pages/testLogin';
 import HomeChat from './pages/HomeChat';
 // import Info from './pages/Info';
-// import Settings from './pages/Settings';
+import Settings from './pages/Settings';
 // import NotFoundPage from './pages/404Page';
 
-// import Root,{loader as loadingAction} from './pages/Root';
+import Root, {loader as loadingAction} from './pages/Root';
 // import Search from './pages/Search';
 
 
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
   {
     path:'login',
     element:<Login></Login>,
-    action:LoginAction
+    
   },
   {
     path:'signup',
@@ -41,23 +41,23 @@ const router = createBrowserRouter([
     element:<HomeChat></HomeChat>,
   
   },
-  // {
-  //   path:'/',
-  //   element:<Root></Root>,
-  //   loader:loadingAction,
-  //   children:[
-  //     {
-  //       path:'message',
-  //       element:<HomeChat></HomeChat>
-  //     },
+  {
+    path:'/home',
+    element: <Root></Root>,
+    loader:loadingAction,
+    children:[
+      {
+        path:'message',
+        element:<HomeChat></HomeChat>
+      },
   //     {
   //       path:'dashboard',
   //       element:<Info></Info>
   //     },
-  //     {
-  //       path:"settings",
-  //       element:<Settings></Settings>
-  //     },
+      {
+        path:"settings",
+        element:<Settings></Settings>
+      },
   //     {
   //       path:"search",
   //       element:<Search></Search>
@@ -69,6 +69,8 @@ const router = createBrowserRouter([
   //   path:'*',
   //   element:<NotFoundPage></NotFoundPage>
   // }
+  ]
+}
 ]);
 function App() {
   return (<RouterProvider router={router} />);

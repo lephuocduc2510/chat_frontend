@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TopBar from "../components/ChatComponents/TopBar";
 import ChatBar from "../components/ChatComponents/ChatBar";
 import ChatTitle from "../components/ChatComponents/ChatTitle";
@@ -9,6 +9,9 @@ import ChatDetails from "../components/ChatComponents/ChatDetails";
 import Loading from "./util/Loading";
 import NoChats from "./util/NoChats";
 import { motion } from 'framer-motion';
+import { axiosClient } from "../libraries/axiosClient";
+
+import { set } from "date-fns";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -27,13 +30,14 @@ interface LatestMessage {
 }
 
 interface Chat {
-  _id: string;
-  isGroupChat: boolean;
-  chatName?: string;
-  users: User[];
-  latestMessage?: LatestMessage;
-  updatedAt: string;
+  idRooms: string;
+  roomName?: string;
+  latestMessage?: { content: string };
+  createdDate: string;
   notify?: boolean;
+  groupLogo? : string
+  description?: string;
+  users: User[];
 }
 
 
@@ -42,47 +46,72 @@ const HomeChat: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
-
+  const [roomSelected, setRoomSelected] = useState<string>("");
+  const [chats, setChats] = useState<Chat[]>([]);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+
+  const getRoomsChat = async () => {
+    setIsLoading(true);
+    const config = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    };
+    try {
+      const response = await axiosClient.get("/api/Rooms-User/get-rooms-by-user", config);
+      setChats(response.data.result || []);
+      setIsEmpty(response.data.result.length === 0);
+      console.log(response.data.result);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getRoomsChat();
+  }, []);
+
 
   // Giả lập dữ liệu chats
   const state: Chat[] = [
     {
-      _id: "1",
-      isGroupChat: false,
-      chatName: "Chat 1",
+      idRooms: "1",
+      roomName: "Chat 1",
       users: [
         { _id: "1", name: "User 1", pic: "/path/to/pic1.jpg" },
         { _id: "2", name: "User 2", pic: "/path/to/pic2.jpg" }
       ],
       latestMessage: { content: "Hello, how are you?" },
-      updatedAt: "2024-11-24T12:34:56Z",
+      createdDate: "2024-11-24T12:34:56Z",
       notify: true
     },
     {
-      _id: "2",
-      isGroupChat: true,
-      chatName: "Group Chat",
+      idRooms: "2",
+      roomName: "Group Chat",
       users: [
         { _id: "3", name: "User 3", pic: "/path/to/pic3.jpg" },
         { _id: "4", name: "User 4", pic: "/path/to/pic4.jpg" }
       ],
       latestMessage: { content: "Group chat started" },
-      updatedAt: "2024-11-23T11:30:00Z"
+      createdDate: "2024-11-23T11:30:00Z"
     },
     {
-      _id: "3",
-      isGroupChat: false,
-      chatName: "Chat 3",
+      idRooms: "3",
+      roomName: "Chat 3",
       users: [
         { _id: "5", name: "User 5", pic: "/path/to/pic5.jpg" }
       ],
       latestMessage: { content: "Good morning!" },
-      updatedAt: "2024-11-24T10:00:00Z",
+      createdDate: "2024-11-24T10:00:00Z",
       notify: true
     }
   ];
+
+
 
   return (
     <div className="grid max-[1250px]:w-[82vw] max-[1024px]:w-[92vw] max-[1250px]:grid-cols-[4.5fr,7fr] max-[900px]:grid-cols-[5.5fr,7fr] w-[80vw] relative grid-rows-[1fr,7fr] grid-cols-[3.5fr,7fr]">
@@ -95,18 +124,21 @@ const HomeChat: React.FC = () => {
       <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
         {isLoading && <Loading />}
         {!isLoading &&
-          state &&
-          state.map((data, index) => (
+          chats &&
+          chats.map((data, index) => (
             <motion.div
             key={index}
             initial="initial"
             animate="animate"
             variants={fadeInUp}
           >
-            <ChatBar select={() => {}} data={data} />
+            <ChatBar select={(value) => { 
+              console.log(value._id);
+              setRoomSelected(value._id);
+            }} data={data} />
           </motion.div>
           ))}
-        {isEmpty === true && state.length === 0 && <NoChats />}
+        {isEmpty === true && chats.length === 0 && <NoChats />}
       </div>
       <div className="bg-[#F6F8FC] flex flex-col relative overflow-hidden">
         <ChatMessages />
