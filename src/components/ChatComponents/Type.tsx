@@ -6,73 +6,94 @@ import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { axiosClient } from "../../libraries/axiosClient";
-import { updateChat } from "../../redux/Chat/chatSlice";
+import { selectChat, updateChat } from "../../redux/Chat/chatSlice";
 import { HubConnection } from "@microsoft/signalr";
+import { useSignalR } from "../../context/SignalRContext";
+
+
+interface MessageInputProps {
+  onFileChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
 export default function Type() {
   const dispatch = useDispatch();
+  const { connection } = useSignalR();
   const [openPicker, setOpenPicker] = useState<boolean>(false);
   const emojiPickerRef = useRef<HTMLDivElement | null>(null);
   const roomId = useSelector((state: RootState) => state.chat.selectedChatId);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
-  const [messages, setMessages] = useState<string>('');
-  const [connection, setConnection] = useState<HubConnection | null>(null);
-  const userId = storedData.id;
+  const [message, setMessage] = useState<string>(""); // Trạng thái cho message
+  const [file, setFile] = useState<File | null>(null);
+
 
   const handleEmojiClick = (emoji: { native: string }) => {
-    setMessages(prevMessages => prevMessages + emoji.native); // Thêm emoji vào tin nhắn
+    setMessage(prevMessage => prevMessage + emoji.native); // Thêm emoji vào tin nhắn
   };
 
-  const messagesHandle = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessages(e.target.value);
-  };
 
-  const sendMessage = async (message: string, fileHtml = null) => {
+  
+   // Hàm gửi message qua SignalR
+   const sendMessage = async (message: string, fileHtml: string | null = null) => {
     if (connection && message.trim()) {
       try {
-        await connection.invoke("SendMessage", message, fileHtml || null);
+        await connection.invoke("SendMessage", message, fileHtml);
+        console.log("Message sent: ", message, fileHtml);
       } catch (err) {
         console.error("Error sending message: ", err);
       }
-    } else {
-      console.error("Connection not established or message is empty.");
     }
   };
 
 
-  const handleSendMessage = async () => {
-    if (!messages.trim()) return; // Kiểm tra xem tin nhắn có trống không
-    setMessages('')
-    const config = {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    };
+  
 
-    const data = {
-      content: messages,
-      userId: userId,
-      roomId: roomId,
-      fileUrl: "string", // Giả sử chưa có file
-      sentAt: new Date().toISOString(),
-    };
 
-    try {
-      const response = await axiosClient.post('/api/Messages', data, config);
-      console.log(response.data.result);
-      dispatch(updateChat(response.data.result))
 
-    ; // Reset lại tin nhắn sau khi gửi
-    } catch (error) {
-      console.error("Error sending message:", error);
+  // Xử lý gửi tin nhắn
+  const handleSend = () => {
+    if (message.trim()) {
+      sendMessage(message);
+      console.log("Message sent: ", message);
+      dispatch(updateChat(message))
+      setMessage(""); // Xóa nội dung input sau khi gửi
     }
   };
+
+  // Api to chat
+
+  // const handleSendMessage = async () => {
+  //   if (!messages.trim()) return; // Kiểm tra xem tin nhắn có trống không
+  //   setMessages('')
+  //   const config = {
+  //     headers: {
+  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //     },
+  //   };
+
+  //   const data = {
+  //     content: messages,
+  //     userId: userId,
+  //     roomId: roomId,
+  //     fileUrl: "string", // Giả sử chưa có file
+  //     sentAt: new Date().toISOString(),
+  //   };
+
+  //   try {
+  //     const response = await axiosClient.post('/api/Messages', data, config);
+  //     console.log(response.data.result);
+  //     dispatch(updateChat(response.data.result))
+
+  //   ; // Reset lại tin nhắn sau khi gửi
+  //   } catch (error) {
+  //     console.error("Error sending message:", error);
+  //   }
+  // };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       //xoá giá trị mặc định của textarea khi nhấn Enter     
       e.preventDefault();
-      handleSendMessage();
+      handleSend();
     }
   };
 
@@ -101,7 +122,7 @@ export default function Type() {
       </IconButton>
 
       {/* Send Icon */}
-      <div style={{ position: "absolute", top: "50%", left: "95%", translate: "-95% -50%", cursor: "pointer" }} onClick={handleSendMessage}>
+      <div style={{ position: "absolute", top: "50%", left: "95%", translate: "-95% -50%", cursor: "pointer" }} onClick={handleSend}>
         <SendIcon color="action" sx={{ width: 22 }} />
       </div>
 
@@ -110,8 +131,8 @@ export default function Type() {
         spellCheck="false"
         data-gramm="false"
         placeholder="Type a message"
-        value={messages}
-        onChange={messagesHandle}
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown} // Gửi tin nhắn khi nhấn Enter
         className="bg-gray-100 resize-none font-Roboto box-border max-[1024px]:px-8 px-[6%] flex text-md max-[900px]:text-sm w-[95%] py-[10px] outline-none h-[70%] rounded-3xl leading-[43px]"
       />

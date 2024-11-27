@@ -1,0 +1,18 @@
+.side-nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    background-color: #f8f9fa;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .side-nav.closed {
+    transform: translateX(-100%);
+  }
+  
+  .side-nav.open {
+    transform: translateX(0);
+  }
+  

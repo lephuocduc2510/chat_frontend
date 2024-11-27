@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Avatar } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../../redux/User/hook';
+import { Navigate, redirect } from 'react-router-dom';
 
 const UserCard: React.FC = () => {
   const Obj = JSON.parse(localStorage.getItem('info') || '{}');
@@ -14,6 +15,12 @@ const UserCard: React.FC = () => {
   const [Name,setName]=useState(Obj?.name);
   const [image, setImage] = useState(Obj?.imageUrl) ;             // Hình ảnh giả lập
 
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = '/login';
+  }
+
   return (
     <div className='flex flex-row items-center ml-[10%] max-[1024px]:hidden'>
       <Avatar 
@@ -24,7 +31,7 @@ const UserCard: React.FC = () => {
       />
       <div className='flex flex-col ml-2'>
         <div className='max-[1250px]:text-[12px] font-bold font-Roboto text-sm'>{Name}</div>
-        <div className="max-[1250px]:text-[10px] text-xs cursor-pointer text-[#979797]">
+        <div className="max-[1250px]:text-[10px] text-xs cursor-pointer text-[#979797]" onClick={handleLogout}>
           Logout
         </div>
       </div>

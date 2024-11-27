@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { axiosClient } from "../libraries/axiosClient";
 
 import { set } from "date-fns";
+import { SignalRProvider } from "../context/SignalRContext";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -115,6 +116,7 @@ const HomeChat: React.FC = () => {
 
   return (
     <div className="grid max-[1250px]:w-[82vw] max-[1024px]:w-[92vw] max-[1250px]:grid-cols-[4.5fr,7fr] max-[900px]:grid-cols-[5.5fr,7fr] w-[80vw] relative grid-rows-[1fr,7fr] grid-cols-[3.5fr,7fr]">
+         <SignalRProvider>
       <BasicModal handleClose={handleClose} open={open} />
       <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
       <TopBar createGroup={handleOpen} />
@@ -144,6 +146,7 @@ const HomeChat: React.FC = () => {
         <ChatMessages />
         <Type />
       </div>
+      </SignalRProvider>
     </div>
   );
 };

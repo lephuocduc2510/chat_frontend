@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Avatar } from '@mui/material';
 import Badge from './util/Badge';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectChat } from '../../redux/Chat/chatSlice';
+import { selectChat, updateChat } from '../../redux/Chat/chatSlice';
 import { RootState } from '../../redux/store';
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import { useSignalR } from '../../context/SignalRContext';
+import { message } from 'antd';
 
 interface MessageData {
   content: string;
@@ -38,16 +40,16 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const userId = storedData.id; 
-  const [connection, setConnection] = useState<HubConnection | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [users, setUsers] = useState([]);
+  const { connection } = useSignalR();
+  const checkMessage = useSelector((state: RootState) => state.chat.messages);  
+  const [messages, setMessages] = useState<MessageData[]>([]); // Tin nhắn trong room
   const [isJoined, setIsJoined] = useState(false); // Room join status
-  const [file, setFile] = useState(null); // File to be sent
-  
+  const [users, setUsers] = useState<string[]>([]); // Users in room
+
+ 
   const handleSelect = async () => {
     dispatch(selectChat(data.idRooms));
     select(data); // Gọi thêm hàm select từ props (nếu cần)
-
 
     if (connection && userId.trim()) {
       try {
@@ -55,7 +57,11 @@ export default function ChatBar({ data, select }: ChatBarProps) {
         setIsJoined(true);
 
         connection.on("ReceiveMessage", (messageData) => {
-          setMessages((prevMessages) => [...prevMessages, messageData]);
+          // setMessages((prevMessages) => [...prevMessages, messageData]);
+          // setMessages(checkMessage)
+          console.log("Message received: ", messageData);
+          dispatch(updateChat(messageData));
+         
         });
 
         connection.on("UsersInRoom", (usersInRoom) => {
@@ -72,19 +78,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   };
 
   // Connect to SignalR
-  useEffect(() => {
-    const connect = new HubConnectionBuilder()
-      .withUrl("https://localhost:7001/chat") // SignalR Hub URL
-      .withAutomaticReconnect()
-      .build();
-
-    setConnection(connect);
-
-    return () => {
-      if (connect) connect.stop();
-    };
-  }, []);
-
+ 
   useEffect(() => {
     if (connection) {
       connection.start()
@@ -93,21 +87,8 @@ export default function ChatBar({ data, select }: ChatBarProps) {
     }
   }, [connection]);
 
-  const sendMessage = async (message: string, fileHtml: string | null = null) => {
-    if (connection && message.trim()) {
-      try {
-        await connection.invoke("SendMessage", message, fileHtml || null);
-      } catch (err) {
-        console.error("Error sending message: ", err);
-      }
-    } else {
-      console.error("Connection not established or message is empty.");
-    }
-  };
- 
-  const joinRoom = async () => {
-    
-  };
+  
+  
 
   return (
     <div
