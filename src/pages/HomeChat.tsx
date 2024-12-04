@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import TopBar from "../components/ChatComponents/TopBar";
 import ChatBar from "../components/ChatComponents/ChatBar";
 import ChatTitle from "../components/ChatComponents/ChatTitle";
@@ -10,9 +10,13 @@ import Loading from "./util/Loading";
 import NoChats from "./util/NoChats";
 import { motion } from 'framer-motion';
 import { axiosClient } from "../libraries/axiosClient";
-
 import { set } from "date-fns";
 import { SignalRProvider } from "../context/SignalRContext";
+import { useRoomContext } from "../context/RoomContext";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import { setIsCreatingRoomm } from "../redux/Chat/chatSlice";
+import { useAppDispatch } from "../redux/User/hook";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -43,6 +47,7 @@ interface Chat {
 
 
 const HomeChat: React.FC = () => {
+
   const [chatModel, setChatModel] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
@@ -51,6 +56,8 @@ const HomeChat: React.FC = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const isCreatingRoom = useRoomContext();
+  const checkCreateRoom = useSelector((state: RootState) => state.chat.isCreatingRoom);
 
 
   const getRoomsChat = async () => {
@@ -73,6 +80,7 @@ const HomeChat: React.FC = () => {
   }
 
   useEffect(() => {
+ 
     getRoomsChat();
   }, []);
 

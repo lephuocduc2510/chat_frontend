@@ -1,36 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-
-// interface Message {
-//   messageId: number;
-//   content: string;
-//   sentAt: string;
-//   isPinned: boolean;
-//   fileUrl?: string; // Dữ liệu file nếu có
-//   userId: string; // ID của người gửi
-//   user: {
-//     name: string;
-//     imageUrl?: string; // URL ảnh đại diện
-//     id: string;
-//     userName: string;
-//     email: string;
-//     [key: string]: any; // Nếu có thêm thuộc tính khác
-//   };
-//   roomId: number;
-//   isRead: boolean;
-// }
-
-
-// Định nghĩa kiểu cho tin nhắn
+// Định nghĩa kiểu cho trạng thái chat
 interface ChatState {
   selectedChatId: string | null; // ID của phòng chat được chọn
   messages: string; // Tin nhắn được lưu dưới dạng chuỗi
+  isCreatingRoom: boolean; // Trạng thái tạo phòng
 }
 
 // Trạng thái ban đầu
 const initialState: ChatState = {
   selectedChatId: null, 
-  messages: "", // 
+  messages: "", // Tin nhắn ban đầu là chuỗi rỗng
+  isCreatingRoom: false, // Mặc định chưa tạo phòng
 };
 
 // Tạo slice cho chat
@@ -42,16 +23,21 @@ const chatSlice = createSlice({
     selectChat(state, action: PayloadAction<string>) {
       state.selectedChatId = action.payload; // Lưu ID vào state
     },
-      // Action để cập nhật tin nhắn mới
-      updateChat(state, action: PayloadAction<string>) {
-        state.messages = action.payload; // Ghi đè chuỗi tin nhắn
-      },
-      // Action để nối tin nhắn mới vào tin nhắn hiện có
-      appendChat(state, action: PayloadAction<string>) {
-        state.messages += (state.messages ? "\n" : "") + action.payload; // Nối tin nhắn với dòng mới
-      },
+    // Action để cập nhật tin nhắn mới
+    updateChat(state, action: PayloadAction<string>) {
+      state.messages = action.payload; // Ghi đè chuỗi tin nhắn
+    },
+    // Action để nối tin nhắn mới vào tin nhắn hiện có
+    appendChat(state, action: PayloadAction<string>) {
+      state.messages += (state.messages ? "\n" : "") + action.payload; // Nối tin nhắn với dòng mới
+    },
+    // Action để thay đổi trạng thái tạo phòng
+    setIsCreatingRoomm(state, action: PayloadAction<boolean>) {
+      state.isCreatingRoom = action.payload; // Cập nhật trạng thái
+    },
   },
 });
-export const { selectChat } = chatSlice.actions; 
-export const { updateChat } = chatSlice.actions;// Export action
-export default chatSlice.reducer
+
+// Export actions và reducer
+export const { selectChat, updateChat, appendChat, setIsCreatingRoomm } = chatSlice.actions; // Export các action
+export default chatSlice.reducer; // Export reducer

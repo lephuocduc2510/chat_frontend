@@ -1,10 +1,18 @@
-import React from 'react'
-import { Skeleton } from '@mui/material'
-export default function Loading() {
-  return (
-    <div className='w-[100%] border-[#acacac] flex flex-col'>
-        <Skeleton height={70}  />
-        <Skeleton height={70} />
-    </div>
-  )
+import React from 'react';
+import { Spin, Space } from 'antd';
+
+interface LoadingProps {
+  spinning: boolean; // Quản lý trạng thái loading
 }
+
+const Loading: React.FC<LoadingProps> = ({ spinning }) => {
+  return (
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000 }}>
+      <Space size="middle">
+        <Spin spinning={spinning} size="large" />
+      </Space>
+    </div>
+  );
+};
+
+export default Loading;

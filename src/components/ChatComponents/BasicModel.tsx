@@ -6,6 +6,10 @@ import User from "./User";
 import Loading from "./Loading";
 import { axiosClient } from "../../libraries/axiosClient";
 import 'antd/dist/reset.css';
+import { useRoomContext } from "../../context/RoomContext";
+import { useAppDispatch } from "../../redux/User/hook";
+import { setIsCreatingRoomm } from "../../redux/Chat/chatSlice";
+
 
 interface User {
   id: string;
@@ -53,6 +57,8 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
   const [searchTerm, setSearchTerm] = React.useState(""); // Từ khóa tìm kiếm
   const [checkSent, setCheckSent] = React.useState(false);
   const isFirstRender = React.useRef(true); // Biến đánh dấu lần render đầu tiên
+  const { isCreatingRoom, setIsCreatingRoom } = useRoomContext(); 
+  const dispatch = useAppDispatch();
 
   // Hàm xử lý khi input thay đổi
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -108,9 +114,11 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     }
   }, [idRoom, checkSent]);
 
-
+   
 
   const HandleCreateRoom = async () => {
+    // setIsCreatingRoom(true);
+    // dispatch(setIsCreatingRoomm(true));
     const token = localStorage.getItem("token");
     const createdBy = idUser;
     const config = {
@@ -126,9 +134,12 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     const response = await axiosClient.post("/api/rooms", body, config);
     if (response.status === 200) {
       setIdRoom(response.data.result.idRooms);
-      setCheckSent(true);
+      handleClose();
+      setCheckSent(false);
+      // setIsCreatingRoom(false);
     }
     else {
+      // setIsCreatingRoom(false);
       console.log("Error: ", response.data.message);
     }
   };
@@ -154,7 +165,8 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     if (response.status === 200) {
       console.log("Add user to room successfully");
     }
-  handleClose();
+
+   
   }
 
 
@@ -172,6 +184,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
 
   return (
     <div className="absolute">
+      <Loading spinning={isCreatingRoom} />
       <Modal
         open={open}
         onClose={handleClose}

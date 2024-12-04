@@ -17,7 +17,7 @@ const InputEmail: React.FC<InputEmailProps> = ({ email, setEmail }) => {
       label="Email"
       onChange={emailHandler}
       value={email}
-      style={{ width: '40%' }}
+      style={{ width: '50%' }}
     />
   );
 };

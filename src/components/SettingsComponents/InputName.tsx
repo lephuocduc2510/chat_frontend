@@ -17,7 +17,7 @@ const InputName: React.FC<InputNameProps> = ({ name, setName }) => {
       onChange={nameHandler}
       id="outlined-read-only-input"
       label="Name"
-      style={{ width: '40%' }}
+      style={{ width: '50%' }}
     />
   );
 };

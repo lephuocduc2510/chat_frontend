@@ -246,187 +246,187 @@ export default function Main() {
 
 
 
-      <Modal
-  centered
-  title={
-    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4A90E2' }}>
-      {currentPage === 1 ? 'Forgot Password' : 'Change Password'}
-    </span>
-  }
-  open={hide}
-  okText={
-    <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
-      {currentPage === 1 ? 'Next' : 'Complete'}
-    </span>
-  }
-  cancelText={
-    <span style={{ fontSize: '1rem' }}>
-      {currentPage === 1 ? 'Cancel' : 'Back'}
-    </span>
-  }
-  onOk={() => {
-    form
-      .validateFields()
-      .then(() => {
-        if (currentPage === 1) {
-          form.submit(); // Submit cho form gửi email
-        } else {
-          changePassword(form.getFieldsValue()); // Gửi yêu cầu đổi mật khẩu
-        }
-      })
-      .catch((info) => {
-        console.log('Validation Failed:', info);
-      });
-  }}
-  onCancel={() => {
-    if (currentPage === 2) setCurrentPage(1);
-    else setHide(false);
-  }}
-  bodyStyle={{
-    padding: '24px',
-    borderRadius: '10px',
-    background: 'linear-gradient(135deg, #EAF8FF, #FFFFFF)',
-  }}
-  okButtonProps={{
-    style: {
-      backgroundColor: '#4A90E2',
-      color: '#fff',
-      borderRadius: '8px',
-      padding: '8px 16px',
-      fontWeight: 'bold',
-      border: 'none',
-    },
-  }}
-  cancelButtonProps={{
-    style: {
-      borderRadius: '8px',
-      padding: '8px 16px',
-      fontWeight: 'bold',
-      border: '1px solid #D9D9D9',
-    },
-  }}
->
-  {currentPage === 1 ? (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={getEmail}
-      style={{
-        background: '#ffffff',
-        borderRadius: '10px',
-        padding: '16px',
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-      }}
-    >
-      <Form.Item
-        name="email"
-        label={
-          <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-            Email
-          </span>
-        }
-        rules={[{ required: true, message: 'Please enter your email!', type: 'email' }]}
+        <Modal
+    centered
+    title={
+      <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4A90E2' }}>
+        {currentPage === 1 ? 'Forgot Password' : 'Change Password'}
+      </span>
+    }
+    open={hide}
+    okText={
+      <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
+        {currentPage === 1 ? 'Next' : 'Complete'}
+      </span>
+    }
+    cancelText={
+      <span style={{ fontSize: '1rem' }}>
+        {currentPage === 1 ? 'Cancel' : 'Back'}
+      </span>
+    }
+    onOk={() => {
+      form
+        .validateFields()
+        .then(() => {
+          if (currentPage === 1) {
+            form.submit(); // Submit cho form gửi email
+          } else {
+            changePassword(form.getFieldsValue()); // Gửi yêu cầu đổi mật khẩu
+          }
+        })
+        .catch((info) => {
+          console.log('Validation Failed:', info);
+        });
+    }}
+    onCancel={() => {
+      if (currentPage === 2) setCurrentPage(1);
+      else setHide(false);
+    }}
+    bodyStyle={{
+      padding: '24px',
+      borderRadius: '10px',
+      background: 'linear-gradient(135deg, #EAF8FF, #FFFFFF)',
+    }}
+    okButtonProps={{
+      style: {
+        backgroundColor: '#4A90E2',
+        color: '#fff',
+        borderRadius: '8px',
+        padding: '8px 16px',
+        fontWeight: 'bold',
+        border: 'none',
+      },
+    }}
+    cancelButtonProps={{
+      style: {
+        borderRadius: '8px',
+        padding: '8px 16px',
+        fontWeight: 'bold',
+        border: '1px solid #D9D9D9',
+      },
+    }}
+  >
+    {currentPage === 1 ? (
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={getEmail}
+        style={{
+          background: '#ffffff',
+          borderRadius: '10px',
+          padding: '16px',
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+        }}
       >
-        <Input
-          placeholder="Enter your email"
-          style={{
-            borderRadius: '8px',
-            padding: '10px',
-            fontSize: '1rem',
-          }}
-        />
-      </Form.Item>
-    </Form>
-  ) : (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={changePassword}
-      style={{
-        background: '#ffffff',
-        borderRadius: '10px',
-        padding: '16px',
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-      }}
-    >
-      <Form.Item
-        name="token"
-        label={
-          <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-            Code
-          </span>
-        }
-        rules={[{ required: true, message: 'Please enter your code!' }]}
+        <Form.Item
+          name="email"
+          label={
+            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+              Email
+            </span>
+          }
+          rules={[{ required: true, message: 'Please enter your email!', type: 'email' }]}
+        >
+          <Input
+            placeholder="Enter your email"
+            style={{
+              borderRadius: '8px',
+              padding: '10px',
+              fontSize: '1rem',
+            }}
+          />
+        </Form.Item>
+      </Form>
+    ) : (
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={changePassword}
+        style={{
+          background: '#ffffff',
+          borderRadius: '10px',
+          padding: '16px',
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+        }}
       >
-        <Input
-          placeholder="Enter your code"
-          style={{
-            borderRadius: '8px',
-            padding: '10px',
-            fontSize: '1rem',
-          }}
-        />
-      </Form.Item>
+        <Form.Item
+          name="token"
+          label={
+            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+              Code
+            </span>
+          }
+          rules={[{ required: true, message: 'Please enter your code!' }]}
+        >
+          <Input
+            placeholder="Enter your code"
+            style={{
+              borderRadius: '8px',
+              padding: '10px',
+              fontSize: '1rem',
+            }}
+          />
+        </Form.Item>
 
-      <Form.Item
-        name="email"
-        initialValue={username}
-        style={{ display: 'none' }}
-      >
-        <Input disabled />
-      </Form.Item>
+        <Form.Item
+          name="email"
+          initialValue={username}
+          style={{ display: 'none' }}
+        >
+          <Input disabled />
+        </Form.Item>
 
-      <Form.Item
-        name="password"
-        label={
-          <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-            Password
-          </span>
-        }
-        rules={[{ required: true, message: 'Please enter your password!' }]}
-      >
-        <Input.Password
-          placeholder="Enter your password"
-          style={{
-            borderRadius: '8px',
-            padding: '10px',
-            fontSize: '1rem',
-          }}
-        />
-      </Form.Item>
+        <Form.Item
+          name="password"
+          label={
+            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+              Password
+            </span>
+          }
+          rules={[{ required: true, message: 'Please enter your password!' }]}
+        >
+          <Input.Password
+            placeholder="Enter your password"
+            style={{
+              borderRadius: '8px',
+              padding: '10px',
+              fontSize: '1rem',
+            }}
+          />
+        </Form.Item>
 
-      <Form.Item
-        name="passwordConfirm"
-        label={
-          <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-            Confirm Password
-          </span>
-        }
-        dependencies={['password']}
-        rules={[
-          { required: true, message: 'Please confirm your password!' },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue('password') === value) {
-                return Promise.resolve();
-              }
-              return Promise.reject(new Error('Passwords do not match!'));
-            },
-          }),
-        ]}
-      >
-        <Input.Password
-          placeholder="Confirm your password"
-          style={{
-            borderRadius: '8px',
-            padding: '10px',
-            fontSize: '1rem',
-          }}
-        />
-      </Form.Item>
-    </Form>
-  )}
-</Modal>
+        <Form.Item
+          name="passwordConfirm"
+          label={
+            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+              Confirm Password
+            </span>
+          }
+          dependencies={['password']}
+          rules={[
+            { required: true, message: 'Please confirm your password!' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('password') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('Passwords do not match!'));
+              },
+            }),
+          ]}
+        >
+          <Input.Password
+            placeholder="Confirm your password"
+            style={{
+              borderRadius: '8px',
+              padding: '10px',
+              fontSize: '1rem',
+            }}
+          />
+        </Form.Item>
+      </Form>
+    )}
+  </Modal>
 
     </div>
   )

@@ -17,7 +17,7 @@ const InputPhone: React.FC<InputNameProps> = ({ phone, setPhone }) => {
       onChange={phoneHandler}
       id="outlined-read-only-input"
       label="Phone Number"
-      style={{ width: '40%' }}
+      style={{ width: '50%' }}
     />
   );
 };
