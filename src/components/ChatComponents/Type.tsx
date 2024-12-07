@@ -53,7 +53,6 @@ export default function Type() {
   const handleSend = () => {
     if (message.trim()) {
       sendMessage(message);
-      console.log("Message sent: ", message);
       dispatch(updateChat(message))
       setMessage(""); // Xóa nội dung input sau khi gửi
     }

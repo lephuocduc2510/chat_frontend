@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import RecieverMessage from "./RecieverMessage";
 import SenderMessage from "./SenderMessage";
 import { useDispatch, useSelector } from "react-redux";
@@ -43,15 +43,24 @@ export default function ChatMessages() {
   // State để lưu trữ danh sách tin nhắn
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  // Trạng thái để kiểm soát cuộn
+  const [shouldScroll, setShouldScroll] = useState(false);
+  const [showNewMessageAlert, setShowNewMessageAlert] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  // Hàm cuộn xuống cuối danh sách
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      // Cuộn đến cuối container
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  };
 
-
-  
-  
   // Hàm lấy tin nhắn từ API
   const getMessages = async () => {
     if (!selectedChat) return;
 
     setLoading(true);
+
     try {
       const config = {
         headers: {
@@ -59,9 +68,25 @@ export default function ChatMessages() {
         },
       };
       const response = await axiosClient.get(`/api/Messages/room/${selectedChat}`, config);
-      setMessages(response.data.result || []);
+      console.log(response.data.result);
+      console.log(userId);
+      if (response.data.result?.[response.data.result.length - 1]?.userId === userId) {
+        // Đánh dấu cần cuộn
+        setShouldScroll(true);
+      }
 
+      else {
+        if (isNearBottom()) {
+           setShouldScroll(true);
+          setShowNewMessageAlert(false); 
+        } else {
+          setShowNewMessageAlert(true); 
+        }
+      }
+      setMessages(response.data.result || []);
       // dispatch(updateChat(response.data.result || []));
+      console.log(checkChatUpdate);
+
 
     } catch (error) {
       console.error(selectedChat);
@@ -80,12 +105,32 @@ export default function ChatMessages() {
     getMessages();
   }, [checkChatUpdate]);
 
+
+  // Cuộn xuống khi cần
+  useEffect(() => {
+    if (shouldScroll) {
+      scrollToBottom();
+      setShouldScroll(false); // Reset trạng thái sau khi cuộn
+    }
+  }, [loading]);
+
+  // Kiểm tra xem người dùng có ở gần cuối đoạn chat không
+  const isNearBottom = () => {
+    if (containerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+      return scrollHeight - scrollTop <= clientHeight + 10; // Cách đáy 50px
+    }
+    return false;
+  };
+
+
+
+
   // useEffect(() => {
 
   //     setMessages(messagesRedux); // Cập nhật messages từ Redux
   //     console.log(messagesRedux);
   //     getMessages();
-
   // }, [messagesRedux]);
 
   // Hàm format ngày
@@ -111,10 +156,15 @@ export default function ChatMessages() {
   };
 
 
+  // Xử lý khi nhấn vào thông báo
+  const handleNewMessageClick = () => {
+    scrollToBottom();
+    setShowNewMessageAlert(false);
+  };
   return (
-    <div className="w-[100%] h-[88%] px-[3%] overflow-y-scroll no-scrollbar py-[2%] box-border relative flex flex-col">
+    <div ref={containerRef} className="w-[100%] h-[88%] px-[3%] overflow-y-scroll no-scrollbar py-[2%] box-border relative flex flex-col">
       {/* Loading và thông báo nếu không có tin nhắn */}
-      {loading && <CircularLoading />}
+      {/* {loading && <CircularLoading />} */}
       {!loading && messages.length === 0 && <EmptyMessages />}
 
       {/* Hiển thị các tin nhắn */}
@@ -152,8 +202,23 @@ export default function ChatMessages() {
               />
             )}
           </div>
+
         );
+
+
       })}
+      {/* Thông báo tin nhắn mới nằm ngoài vòng lặp, chỉ hiển thị khi cần */}
+      {showNewMessageAlert && (
+        <div
+          className="sticky bottom-4 left-4 w-[35%] bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-md border border-blue-300 cursor-pointer"
+          onClick={handleNewMessageClick}
+        >
+          Bạn có tin nhắn mới!
+        </div>
+      )}
+
+
     </div>
+
   );
 }

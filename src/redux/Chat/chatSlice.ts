@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-// Định nghĩa kiểu cho trạng thái chat
+
 interface ChatState {
   selectedChatId: string | null; // ID của phòng chat được chọn
   messages: string; // Tin nhắn được lưu dưới dạng chuỗi

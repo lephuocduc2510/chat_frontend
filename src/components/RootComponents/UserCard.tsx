@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Avatar } from '@mui/material';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAppSelector } from '../../redux/User/hook';
 import { Navigate, redirect } from 'react-router-dom';
+import { RootState } from '../../redux/store';
 
 const UserCard: React.FC = () => {
   const Obj = JSON.parse(localStorage.getItem('info') || '{}');
@@ -10,10 +11,25 @@ const UserCard: React.FC = () => {
   // const Name = 'User'
   // const image = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
   const dispatch=useDispatch();
-  const dataredux = useAppSelector((state) => state.user.userInfo);
+  const datareduxImg = useSelector((state: RootState) => state.avatar.imageUrl);
+  const dataredux = useSelector((state: RootState) => state.user.userInfo);
 
   const [Name,setName]=useState(Obj?.name);
-  const [image, setImage] = useState(Obj?.imageUrl) ;             // Hình ảnh giả lập
+  const [image, setImage] = useState(Obj?.imageUrl) ;             
+
+  useEffect(() => {
+    if (dataredux?.name ) {
+      setName(dataredux.name);
+
+    }
+  }, [dataredux]);;
+
+  useEffect(() => {
+    if ( datareduxImg) {
+
+      setImage(datareduxImg);
+    }
+  }, [ datareduxImg]);;
 
 
   const handleLogout = () => {

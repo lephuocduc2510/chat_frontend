@@ -1,29 +1,26 @@
-// src/redux/userSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserInfo } from "./type"
+import { UserInfo } from "./type";
 
-interface UserState {
+interface UserInfoState {
   userInfo: UserInfo;
 }
 
-const initialState: UserState = {
+const initialState: UserInfoState = {
   userInfo: {
     id: null,
     name: "",
     email: "",
     imageUrl: "",
+    phoneNumber: "",
   },
 };
 
-const userSlice = createSlice({
-  name: "user",
+const userInfoSlice = createSlice({
+  name: "userInfo",
   initialState,
   reducers: {
     setUserInfo: (state, action: PayloadAction<UserInfo>) => {
       state.userInfo = action.payload;
-    },
-    updateUserAvatar: (state, action: PayloadAction<string>) => {
-      state.userInfo.imageUrl = action.payload;
     },
     clearUserInfo: (state) => {
       state.userInfo = initialState.userInfo;
@@ -31,6 +28,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUserInfo, updateUserAvatar, clearUserInfo } = userSlice.actions;
+export const { setUserInfo, clearUserInfo } = userInfoSlice.actions;
 
-export default userSlice.reducer;
+export default userInfoSlice.reducer;

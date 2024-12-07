@@ -37,7 +37,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   const groupImg = data.groupLogo; // Lấy ảnh đại diện của nhóm hoặc người dùng đầu tiên
   const dateObject = new Date(data.createdDate); // Chuyển đổi `createdDate` thành đối tượng `Date`
   const description = data.description || 'No description'; // Mô tả mặc định
-  
+  const chatLatest = useSelector((state: RootState) => state.chat.messages);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const userId = storedData.id; 
   const { connection } = useSignalR();

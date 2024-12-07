@@ -213,10 +213,10 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
             rows={4} // Số dòng hiển thị mặc định
           />
           {/* <div className="w-[100%]">
-            <User add={() => { }} values={{ pic: "1", name: "John Doe", email: "john@example.com" }} /> */}
-          {/* <Loading /> */}
-          {/* </div>
-          <GroupUserList remove={() => { }} users={[{ _id: "1", name: "John Doe", pic: "john@example.com" }]} /> */}
+            <User add={() => { }} values={{ pic: "1", name: "John Doe", email: "john@example.com" }} />
+          <Loading  spinning/>
+          </div>
+          <GroupUserList remove={() => { }} users={[{ id: "1", name: "John Doe", pic: "john@example.com" }]} /> */}
 
           {/* Danh sách người dùng */}
           <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-10">

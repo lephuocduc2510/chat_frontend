@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Profile from "../components/SettingsComponents/Profile";
 import InputName from "../components/SettingsComponents/InputName";
 import InputEmail from "../components/SettingsComponents/InputEmail";
@@ -8,20 +8,31 @@ import axios from "axios";
 import { axiosClient } from "../libraries/axiosClient";
 import InputPhone from "../components/SettingsComponents/InputPhone";
 import { click } from "@testing-library/user-event/dist/click";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUserInfo } from "../redux/User/userSlice";
+import { RootState } from "../redux/store";
 
 export default function Settings() {
   const dispatch = useDispatch();
+  const reduxData = useSelector((state: RootState) => state.user.userInfo);
   const storedData = JSON.parse(localStorage.getItem('info') || '{}');
   const [name, setName] = useState(storedData.name);
   const [email, setEmail] = useState(storedData.userName);
   const [phoneNumber, setPhoneNumber] = useState(storedData.phoneNumber);
   const [clicked, setClicked] = useState(false);
+  const isFirstRender = useRef(true);
 
+
+  useEffect(() => {
+    if (reduxData) {
+      setName(reduxData.name);
+      setPhoneNumber(reduxData.phoneNumber);
+    }
+  }, [reduxData]); // Chỉ chạy khi reduxData thay đổi
+
+  
 
   const updateHandler = () => {
-
     setClicked(true);
 
     // Reset màu sau 1 giây (1000ms)
@@ -43,15 +54,7 @@ export default function Settings() {
       };
       const response = await axiosClient.put("/api/user/change-profile", formData, config);
       if (response.status === 200) {
-
-
-        const updatedUserInfo = {
-          id: response.data.result.id,
-          name: response.data.result.name,
-          email: response.data.result.userName, // có thể bạn cần thay đổi trường này nếu `email` là đúng
-          imageUrl: response.data.result.imageUrl,
-        };
-        dispatch(setUserInfo(updatedUserInfo));
+        dispatch(setUserInfo(response.data.result));
         notification.success({
           message: 'Successfully saved',
           description: 'Your data has been saved successfully.',
@@ -61,6 +64,7 @@ export default function Settings() {
             console.log('Notification closed');
           },
         });
+
 
       }
 
@@ -96,8 +100,8 @@ export default function Settings() {
         </div>
         <Profile />
         <div className="mt-6 flex flex-col gap-6">
-          <InputName name={name} setName={(value) => setName(value)} />
           <InputEmail email={email} setEmail={(value) => setEmail(value)} />
+          <InputName name={name} setName={(value) => setName(value)} />
           <InputPhone phone={phoneNumber} setPhone={(value) => setPhoneNumber(value)} />
         </div>
         <div className="flex flex-row mt-6 gap-4">

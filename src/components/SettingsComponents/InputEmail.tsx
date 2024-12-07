@@ -13,6 +13,7 @@ const InputEmail: React.FC<InputEmailProps> = ({ email, setEmail }) => {
 
   return (
     <TextField
+      disabled
       id="outlined-read-only-input"
       label="Email"
       onChange={emailHandler}

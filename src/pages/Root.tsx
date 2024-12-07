@@ -4,11 +4,13 @@ import Title from '../components/ChatComponents/Title';
 import Menu from '../components/RootComponents/Menu';
 import { Outlet, redirect } from 'react-router-dom';
 import UserCard from '../components/RootComponents/UserCard';
-
 import { useLoaderData } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { axiosClient } from '../libraries/axiosClient';
-
+import { useDispatch } from 'react-redux';
+import { set } from 'date-fns';
+import { setUserInfo } from '../redux/User/userSlice';
+import store from '../redux/store'; // Import store của bạn
 // Định nghĩa kiểu dữ liệu cho `data` trả về từ loader
 interface User {
   _id: string;
@@ -17,10 +19,10 @@ interface User {
   [key: string]: any; // Nếu có các thuộc tính khác chưa rõ ràng
 }
 
+
+  
+
 export default function Root() {
- 
-
-
   return (
 
 
@@ -53,8 +55,7 @@ interface LoaderArgs {
 }
 
 export async function loader({ request }: LoaderArgs) {
-
-  
+ 
   const cookie = localStorage.getItem('token');
   const config = {  
     headers: { Authorization: `Bearer ${cookie}` },
@@ -71,13 +72,12 @@ export async function loader({ request }: LoaderArgs) {
 
   const parsed = JSON.stringify(user);
   localStorage.setItem('info', parsed);
+  store.dispatch(setUserInfo(user));
   console.log(parsed);
 
   return user;
 
   // Render lại trang khi có thay đổi trong localStorage
 
-  
-  
 
 }

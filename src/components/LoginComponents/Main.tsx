@@ -8,6 +8,7 @@ import { FaArrowCircleLeft } from 'react-icons/fa';
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import { axiosClient } from '../../libraries/axiosClient';
 import { Form, Input, Button, Row, Col, Divider, Spin, Typography, message, Modal } from 'antd';
+import { useDispatch } from 'react-redux';
 const { jwtDecode } = require('jwt-decode');
 const { Title, Text } = Typography;
 
@@ -26,6 +27,7 @@ export default function Main() {
   const [username, setUsername] = useState(''); 
   const [form] = Form.useForm();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
   const setHideModal = () => {
     setHide(true);
@@ -124,6 +126,7 @@ export default function Main() {
         localStorage.setItem('token', response.data.result.accessToken);
         message.success('Login success');
         console.log("Login success", response.data.result.accessToken);
+
         checkLogin();
 
       } else {  

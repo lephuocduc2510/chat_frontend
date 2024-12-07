@@ -5,58 +5,59 @@ import { Button, Layout, message, notification, Upload } from "antd";
 import { Content } from "antd/es/layout/layout";
 import { UploadFileOutlined } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from "../../redux/User/hook";
-import { setUserInfo, updateUserAvatar } from "../../redux/User/userSlice";
+
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+import { updateUserAvatar } from "../../redux/User/avatarSlice";
+import { set } from "date-fns";
 
 export default function Profile() {
   const dispatch = useAppDispatch();
-  const dataredux = useAppSelector((state) => state.user.userInfo);
+  const avatarUrl = useSelector((state: RootState) => state.avatar.imageUrl);
   const storedData = JSON.parse(localStorage.getItem('info') || '{}');
   const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
   const [image, setImage] = React.useState(storedData.imageUrl);
   const [clicked, setClicked] = useState(false);
   const [saved, setSaved] = useState(false);
-  
-  useEffect(() => {
-    console.log("Selected Image after update:", selectedImage);
-  }, [selectedImage]);
 
   useEffect(() => {
-    if (dataredux && dataredux.imageUrl && dataredux.imageUrl !== image) {
-        setImage(dataredux.imageUrl);
-        console.log("Image after update by redux:", image);
+    if (avatarUrl) {
+      setImage(avatarUrl);
     }
+  }, [avatarUrl]);;
 
-}, [dataredux,saved]);
 
   useEffect(() => {
-    console.log("Image after update:", image);
+    //đặt lại file ảnh là null sau khi đã lưu
+    if (saved) {
+      setSelectedImage(null);
+    }
   }
-    , [image]);
+    , [saved]);
 
-  
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files ? e.target.files[0] : null;
-      setSelectedImage(file);
-    };
 
   // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   const file = e.target.files ? e.target.files[0] : null;
-  //   console.log(storedData);
-  //   if (file) {
-  //     setSelectedImage(file);
-  //     const reader = new FileReader();
-  //     // reader.onloadend = () => {
-  //     //   setImage(reader.result as string); // Lưu đường dẫn hình ảnh
-  //     // };
-  //     reader.readAsDataURL(file);
-     
-  //   }
+  //   setSelectedImage(file);
   // };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    console.log(storedData);
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string); // Lưu đường dẫn hình ảnh
+      };
+      reader.readAsDataURL(file);
+
+    }
+  };
 
 
   const handleUpload = async () => {
-   
+
     setClicked(true);
     // Reset màu sau 1 giây (1000ms)
     setTimeout(() => {
@@ -75,17 +76,12 @@ export default function Profile() {
     const formData = new FormData();
     if (selectedImage) formData.append("Image", selectedImage);
     console.log(formData);
-    const data = await axiosClient.put("/api/user/change-profile", formData, config);
+    const data = await axiosClient.put("/api/user/change-image-profile", formData, config);
     if (data.status === 200) {
-      const updatedUserInfo = {
-        id: data.data.result.id,
-        name: data.data.result.name,
-        email: data.data.result.userName, // có thể bạn cần thay đổi trường này nếu `email` là đúng
-        imageUrl: data.data.result.imageUrl,
-      };
-      dispatch(setUserInfo(updatedUserInfo));
+      alert("Are you sure you want to save this picture?");
       setSaved(true);
-      console.log("Saved:", dataredux);
+      dispatch(updateUserAvatar(data.data.result.imageUrl));
+      console.log("Saved:", avatarUrl);
       notification.success({
         message: 'Successfully saved',
         description: 'Your avatar has been saved.',
@@ -95,12 +91,12 @@ export default function Profile() {
           console.log('Notification closed');
         },
       });
-      alert("...");
+   
     }
 
     else
       notification.error({
-        message: 'Operation failed',  // Tiêu đề thông báo lỗi
+        message: 'Có lỗi khi lưu ảnh',  // Tiêu đề thông báo lỗi
         description: 'An error occurred while saving your file. Please try again later.',  // Nội dung thông báo lỗi
         duration: 3,  // Thời gian hiển thị (3 giây)
         placement: 'topRight',  // Vị trí thông báo
@@ -113,9 +109,9 @@ export default function Profile() {
   }
 
 
- 
 
 
+  let pic = image;
 
   return (
     <div className="flex flex-row items-center gap-10 mt-[2%]">
@@ -123,7 +119,7 @@ export default function Profile() {
         {/* Avatar */}
         <div className="relative">
           <img
-            src={image || "https://via.placeholder.com/150"} // Nếu có ảnh thì hiển thị ảnh, không có thì dùng placeholder
+            src={pic || "https://via.placeholder.com/150"} // Nếu có ảnh thì hiển thị ảnh, không có thì dùng placeholder
             alt="Avatar"
             className="w-32 h-32 rounded-full object-cover"
           />

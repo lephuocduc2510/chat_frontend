@@ -4,5 +4,6 @@ export interface UserInfo {
     name: string;
     email: string;
     imageUrl: string; // Đường dẫn ảnh đại diện
+    phoneNumber: string;
   }
   
