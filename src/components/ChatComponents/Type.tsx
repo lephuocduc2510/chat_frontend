@@ -4,12 +4,28 @@ import SendIcon from "@mui/icons-material/Send";
 import { Box, IconButton } from "@mui/material";
 import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
+import store, { RootState } from "../../redux/store";
 import { axiosClient } from "../../libraries/axiosClient";
 import { selectChat, updateChat } from "../../redux/Chat/chatSlice";
 import { HubConnection } from "@microsoft/signalr";
 import { useSignalR } from "../../context/SignalRContext";
+import { addMessage } from "../../redux/Chat/chatLatestSlice";
 
+
+type ChatMessage = {
+  userId: string;
+  content: string;
+  fileUrl: string;
+  sentAt: string;
+  roomId: string; // Phòng nào
+};
+
+
+interface FileUploadProps {
+  userId: string;
+  roomId: string;
+  sendMessage: (content: string, fileHtml: string) => void;
+}
 
 interface MessageInputProps {
   onFileChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -45,18 +61,68 @@ export default function Type() {
   };
 
 
-  
-
-
-
   // Xử lý gửi tin nhắn
   const handleSend = () => {
     if (message.trim()) {
       sendMessage(message);
-      dispatch(updateChat(message))
+      const newMessage: ChatMessage = {
+        content: message,
+        sentAt: new Date().toISOString(),
+        userId: storedData.id,
+        fileUrl: "",
+        roomId: roomId || ""
+      };
+      console.log("new Message: ", newMessage);
+      dispatch(addMessage(newMessage))
+      console.log("Updated Redux State: ", store.getState().chatLatest);
       setMessage(""); // Xóa nội dung input sau khi gửi
     }
   };
+
+
+  // UPLOAD FILE
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files ? event.target.files[0] : null;
+    setFile(selectedFile); // Get the selected file
+  };
+
+  // const handleFileUpload = async () => {
+  //   if (file && userId.trim() && roomId) {
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+  //     formData.append("UserId", userId);
+
+  //     try {
+  //       const response = await fetch(`https://localhost:7001/api/Messages/upload-file/${roomId}`, {
+  //         method: "POST",
+  //         body: formData,
+  //       });
+
+  //       if (!response.ok) {
+  //         console.error("File upload failed");
+  //         return;
+  //       }
+
+  //       const result = await response.json();
+  //       console.log("API Response:", result);
+
+  //       const fileHtml = result.content || 
+  //         `<a href="${result.fileUrl}" target="_blank"><img src="${result.fileUrl}" class="post-image" alt="file image"></a>`;
+
+  //       if (!result.content && !result.fileUrl) {
+  //         console.error("Invalid API response: No content or fileUrl found.");
+  //         return;
+  //       }
+
+  //       sendMessage("", fileHtml); // Gửi tin nhắn với nội dung file
+  //       console.log(`File uploaded successfully: ${fileHtml}`);
+  //     } catch (err) {
+  //       console.error("Error uploading file: ", err);
+  //     }
+  //   } else {
+  //     alert("User ID or Room ID is missing, or no file selected.");
+  //   }
+  // };
 
   // Api to chat
 

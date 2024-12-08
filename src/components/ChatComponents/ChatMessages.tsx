@@ -68,8 +68,6 @@ export default function ChatMessages() {
         },
       };
       const response = await axiosClient.get(`/api/Messages/room/${selectedChat}`, config);
-      console.log(response.data.result);
-      console.log(userId);
       if (response.data.result?.[response.data.result.length - 1]?.userId === userId) {
         // Đánh dấu cần cuộn
         setShouldScroll(true);
@@ -85,9 +83,6 @@ export default function ChatMessages() {
       }
       setMessages(response.data.result || []);
       // dispatch(updateChat(response.data.result || []));
-      console.log(checkChatUpdate);
-
-
     } catch (error) {
       console.error(selectedChat);
     } finally {

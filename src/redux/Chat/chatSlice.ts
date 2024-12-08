@@ -2,16 +2,16 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 
 interface ChatState {
-  selectedChatId: string | null; // ID của phòng chat được chọn
-  messages: string; // Tin nhắn được lưu dưới dạng chuỗi
-  isCreatingRoom: boolean; // Trạng thái tạo phòng
+  selectedChatId: string | null; 
+  messages: string; 
+  isCreatingRoom: boolean; 
 }
 
 // Trạng thái ban đầu
 const initialState: ChatState = {
   selectedChatId: null, 
-  messages: "", // Tin nhắn ban đầu là chuỗi rỗng
-  isCreatingRoom: false, // Mặc định chưa tạo phòng
+  messages: "", 
+  isCreatingRoom: false, 
 };
 
 // Tạo slice cho chat

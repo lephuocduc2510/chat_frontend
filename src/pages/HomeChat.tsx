@@ -11,12 +11,13 @@ import NoChats from "./util/NoChats";
 import { motion } from 'framer-motion';
 import { axiosClient } from "../libraries/axiosClient";
 import { set } from "date-fns";
-import { SignalRProvider } from "../context/SignalRContext";
+import { SignalRProvider, useSignalR } from "../context/SignalRContext";
 import { useRoomContext } from "../context/RoomContext";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { setIsCreatingRoomm } from "../redux/Chat/chatSlice";
+import { setIsCreatingRoomm, updateChat } from "../redux/Chat/chatSlice";
 import { useAppDispatch } from "../redux/User/hook";
+import { addMessage } from "../redux/Chat/chatLatestSlice";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -40,14 +41,14 @@ interface Chat {
   latestMessage?: { content: string };
   createdDate: string;
   notify?: boolean;
-  groupLogo? : string
+  groupLogo?: string
   description?: string;
   users: User[];
 }
 
 
 const HomeChat: React.FC = () => {
-
+  const dispatch = useDispatch();
   const [chatModel, setChatModel] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
@@ -58,6 +59,48 @@ const HomeChat: React.FC = () => {
   const handleClose = () => setOpen(false);
   const isCreatingRoom = useRoomContext();
   const checkCreateRoom = useSelector((state: RootState) => state.chat.isCreatingRoom);
+  const { connection } = useSignalR();
+  const userId =  JSON.parse(localStorage.getItem("info") || "{}").id;
+
+
+  //received message
+  useEffect(() => {
+    console.log("Connection: ", connection);
+    if (connection) {
+      connection.on("ReceiveMessage", (messageData) => {
+        console.log("Message received globally: ", messageData);
+  
+        // Cập nhật tin nhắn vào Redux hoặc state
+        dispatch(updateChat(messageData));
+        const newMessage = {
+          content: messageData.content,
+          userId: messageData.userId,
+          sentAt: messageData.sentAt,
+          fileUrl: messageData.fileUrl,
+          roomId: messageData.roomId,
+        };
+        dispatch(addMessage(newMessage));
+      });
+  
+      // Cleanup listener khi component unmount
+      return () => {
+        connection.off("ReceiveMessage");
+      };
+    }
+  },  [dispatch]);
+
+//   useEffect(() => {
+//   if (connection && userId) {
+//     chats.forEach(chat => {
+//       connection.invoke("JoinRoom", chat.idRooms, userId)
+//         .then(() => console.log(`Joined Room ${chat.idRooms}`))
+//         .catch(err => console.error(`Error joining room ${chat.idRooms}: `, err));
+//     });
+//   }
+// }, [connection, chats, userId])
+
+
+
 
 
   const getRoomsChat = async () => {
@@ -80,80 +123,46 @@ const HomeChat: React.FC = () => {
   }
 
   useEffect(() => {
- 
+
     getRoomsChat();
   }, []);
 
 
-  // Giả lập dữ liệu chats
-  const state: Chat[] = [
-    {
-      idRooms: "1",
-      roomName: "Chat 1",
-      users: [
-        { _id: "1", name: "User 1", pic: "/path/to/pic1.jpg" },
-        { _id: "2", name: "User 2", pic: "/path/to/pic2.jpg" }
-      ],
-      latestMessage: { content: "Hello, how are you?" },
-      createdDate: "2024-11-24T12:34:56Z",
-      notify: true
-    },
-    {
-      idRooms: "2",
-      roomName: "Group Chat",
-      users: [
-        { _id: "3", name: "User 3", pic: "/path/to/pic3.jpg" },
-        { _id: "4", name: "User 4", pic: "/path/to/pic4.jpg" }
-      ],
-      latestMessage: { content: "Group chat started" },
-      createdDate: "2024-11-23T11:30:00Z"
-    },
-    {
-      idRooms: "3",
-      roomName: "Chat 3",
-      users: [
-        { _id: "5", name: "User 5", pic: "/path/to/pic5.jpg" }
-      ],
-      latestMessage: { content: "Good morning!" },
-      createdDate: "2024-11-24T10:00:00Z",
-      notify: true
-    }
-  ];
 
 
 
   return (
     <div className="grid max-[1250px]:w-[82vw] max-[1024px]:w-[92vw] max-[1250px]:grid-cols-[4.5fr,7fr] max-[900px]:grid-cols-[5.5fr,7fr] w-[80vw] relative grid-rows-[1fr,7fr] grid-cols-[3.5fr,7fr]">
-         <SignalRProvider>
-      <BasicModal handleClose={handleClose} open={open} />
-      <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
-      <TopBar createGroup={handleOpen} />
-      <div className="flex flex-row items-center border-[1px] border-[#f5f5f5]">
-        <ChatTitle openChatModel={() => setChatModel(true)} />
-      </div>
-      <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
-        {isLoading && <Loading />}
-        {!isLoading &&
-          chats &&
-          chats.map((data, index) => (
-            <motion.div
-            key={index}
-            initial="initial"
-            animate="animate"
-            variants={fadeInUp}
-          >
-            <ChatBar select={(value) => { 
-              console.log(value._id);
-              setRoomSelected(value._id);
-            }} data={data} />
-          </motion.div>
-          ))}
-        {isEmpty === true && chats.length === 0 && <NoChats />}
-      </div>
-      <div className="bg-[#F6F8FC] flex flex-col relative overflow-hidden">
-        <ChatMessages />
-        <Type />
-      </div>
+      <SignalRProvider>
+        <BasicModal handleClose={handleClose} open={open} />
+        <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
+        <TopBar createGroup={handleOpen} />
+        <div className="flex flex-row items-center border-[1px] border-[#f5f5f5]">
+          <ChatTitle openChatModel={() => setChatModel(true)} />
+        </div>
+        <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
+          {isLoading && <Loading />}
+          {!isLoading &&
+            chats &&
+            chats.map((data, index) => (
+              <motion.div
+                key={index}
+                initial="initial"
+                animate="animate"
+                variants={fadeInUp}
+              >
+                <ChatBar select={(value) => {
+                  console.log(value._id);
+                  setRoomSelected(value._id);
+                }} data={data} />
+              </motion.div>
+            ))}
+          {isEmpty === true && chats.length === 0 && <NoChats />}
+        </div>
+        <div className="bg-[#F6F8FC] flex flex-col relative overflow-hidden">
+          <ChatMessages />
+          <Type />
+        </div>
       </SignalRProvider>
     </div>
   );

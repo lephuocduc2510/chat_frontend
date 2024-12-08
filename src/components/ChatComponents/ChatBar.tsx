@@ -7,11 +7,14 @@ import { RootState } from '../../redux/store';
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { useSignalR } from '../../context/SignalRContext';
 import { message } from 'antd';
+import { addMessage } from '../../redux/Chat/chatLatestSlice';
 
 interface MessageData {
   content: string;
-  senderId: string;
-  timestamp: string;
+  userId: string;
+  sentAt: string;
+  fileUrl?: string;
+  roomId: string;
 }
 
 // Định nghĩa kiểu cho props
@@ -32,21 +35,20 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   const dispatch = useDispatch();
   const selectedChatId = useSelector((state: RootState) => state.chat.selectedChatId);
   const groupName = data.roomName || 'Group Chat'; // Tên nhóm mặc định
-  const latestMessage = data.latestMessage ? data.latestMessage.content.slice(0, 35) : '';
   const isExcedding = data.latestMessage && data.latestMessage.content.length > 35;
   const groupImg = data.groupLogo; // Lấy ảnh đại diện của nhóm hoặc người dùng đầu tiên
-  const dateObject = new Date(data.createdDate); // Chuyển đổi `createdDate` thành đối tượng `Date`
-  const description = data.description || 'No description'; // Mô tả mặc định
-  const chatLatest = useSelector((state: RootState) => state.chat.messages);
+  const chat = useSelector((state: RootState) => selectedChatId ? state.chatLatest[data.idRooms] : null);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const userId = storedData.id; 
   const { connection } = useSignalR();
   const checkMessage = useSelector((state: RootState) => state.chat.messages);  
-  const [messages, setMessages] = useState<MessageData[]>([]); // Tin nhắn trong room
-  const [isJoined, setIsJoined] = useState(false); // Room join status
-  const [users, setUsers] = useState<string[]>([]); // Users in room
-
+  const [isJoined, setIsJoined] = useState(false); 
+  const [users, setUsers] = useState<string[]>([]); 
+  const [chatLatest, setChatLatest] = useState<MessageData | null>(null); 
+  const [time, setTime] = useState<string>("");
+  const dateObject = new Date(time); 
  
+   // Giả sử lấy content từ phần tử cuối cùng
   const handleSelect = async () => {
     dispatch(selectChat(data.idRooms));
     select(data); // Gọi thêm hàm select từ props (nếu cần)
@@ -55,15 +57,21 @@ export default function ChatBar({ data, select }: ChatBarProps) {
       try {
         await connection.invoke("JoinRoom", data.idRooms, userId);
         setIsJoined(true);
-
         connection.on("ReceiveMessage", (messageData) => {
           // setMessages((prevMessages) => [...prevMessages, messageData]);
           // setMessages(checkMessage)
           console.log("Message received: ", messageData);
           dispatch(updateChat(messageData));
-         
+          const newMessage = {
+            content: messageData.content,
+            userId: messageData.userId,
+            sentAt: messageData.sentAt,
+            fileUrl: messageData.fileUrl,
+            roomId: messageData.roomId,
+          };
+          console.log("New message: ", newMessage);
+          dispatch(addMessage(newMessage));      
         });
-
         connection.on("UsersInRoom", (usersInRoom) => {
           setUsers(usersInRoom);
         });
@@ -87,6 +95,14 @@ export default function ChatBar({ data, select }: ChatBarProps) {
     }
   }, [connection]);
 
+
+  useEffect(() => {
+    console.log("Check chatLatest: ", chat);
+    if (chat && typeof chat === "object") {
+      setChatLatest(chat); // Set chatLatest với đối tượng chat
+      setTime(chat.sentAt); // Lấy thời gian từ chat
+    }
+  }, [chat]);
   
   
 
@@ -108,7 +124,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
         <div className="flex flex-col ml-2">
           <div className="font-bold font-Roboto text-sm">{groupName}</div>
           <div className="text-xs text-[#979797]">
-            {description}
+           {chatLatest?.content}
             {isExcedding ? '.....' : ''}
           </div>
         </div>
