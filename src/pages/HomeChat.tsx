@@ -38,7 +38,7 @@ interface LatestMessage {
 
 interface Chat {
   idRooms: string;
-  roomName?: string;
+  roomName: string;
   latestMessage?: { content: string };
   createdDate: string;
   notify?: boolean;
@@ -60,6 +60,7 @@ const HomeChat: React.FC = () => {
   const handleClose = () => setOpen(false);
   const isCreatingRoom = useRoomContext();
   const roomId = useSelector((state: RootState) => state.chat.selectedChatId) || "";
+  const roomName = useSelector((state: RootState) => state.chat.nameRoom) || "";
   const checkCreateRoom = useSelector((state: RootState) => state.chat.isCreatingRoom);
   const { connection } = useSignalR();
   const userId =  JSON.parse(localStorage.getItem("info") || "{}").id;
@@ -144,7 +145,7 @@ const HomeChat: React.FC = () => {
         <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
         <TopBar createGroup={handleOpen} />
         <div className="flex flex-row items-center border-[1px] border-[#f5f5f5]">
-          <ChatTitle openChatModel={() => setChatModel(true)}  idRooms= {roomId} />
+          <ChatTitle openChatModel={() => setChatModel(true)}  idRooms= {roomId} roomName= {roomName} />
         </div>
         <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
           {isLoading && <Loading />}

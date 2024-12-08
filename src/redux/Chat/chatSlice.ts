@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface ChatState {
   selectedChatId: string | null; 
+  nameRoom: string;
   messages: string; 
   isCreatingRoom: boolean; 
 }
@@ -10,6 +11,7 @@ interface ChatState {
 // Trạng thái ban đầu
 const initialState: ChatState = {
   selectedChatId: null, 
+  nameRoom: "",
   messages: "", 
   isCreatingRoom: false, 
 };
@@ -22,6 +24,11 @@ const chatSlice = createSlice({
     // Action để lưu ID phòng được chọn
     selectChat(state, action: PayloadAction<string>) {
       state.selectedChatId = action.payload; // Lưu ID vào state
+    },
+
+    //Action để lưu tên phòng
+    updateNameRoom(state, action: PayloadAction<string>) {
+      state.nameRoom = action.payload; // Lưu tên phòng vào state
     },
     // Action để cập nhật tin nhắn mới
     updateChat(state, action: PayloadAction<string>) {
@@ -39,5 +46,5 @@ const chatSlice = createSlice({
 });
 
 // Export actions và reducer
-export const { selectChat, updateChat, appendChat, setIsCreatingRoomm } = chatSlice.actions; // Export các action
+export const { selectChat, updateChat, appendChat, setIsCreatingRoomm, updateNameRoom } = chatSlice.actions; // Export các action
 export default chatSlice.reducer; // Export reducer

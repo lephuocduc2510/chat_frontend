@@ -7,10 +7,10 @@ import groupLogo from '../../assets/images/group.png';
 interface ChatTitleProps {
   openChatModel: () => void;
   idRooms: string;
-  // roomName: string;
+  roomName: string;
 }
 
-const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms }) => {
+const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms, roomName }) => {
   return (
     <div className="flex flex-row items-center px-[5%] box-border justify-between w-[100%]">
       <div className="flex flex-row items-center">
@@ -23,7 +23,7 @@ const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms }) => {
           }}
         />
         <div className="flex flex-col ml-3">
-          <div className="text-xl font-Roboto font-semibold">{idRooms}</div>
+          <div className="text-xl font-Roboto font-semibold">  {roomName? roomName : "Group Name"}  </div>
         </div>
       </div>
       <div onClick={openChatModel}>

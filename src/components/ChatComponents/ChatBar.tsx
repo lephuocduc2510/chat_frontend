@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Avatar } from '@mui/material';
 import Badge from './util/Badge';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectChat, updateChat } from '../../redux/Chat/chatSlice';
+import { selectChat, updateChat, updateNameRoom } from '../../redux/Chat/chatSlice';
 import { RootState } from '../../redux/store';
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { useSignalR } from '../../context/SignalRContext';
@@ -21,7 +21,7 @@ interface MessageData {
 interface ChatBarProps {
   data: {
     idRooms: string;
-    roomName?: string;
+    roomName: string;
     latestMessage?: { content: string };
     createdDate: string;
     notify?: boolean;
@@ -52,6 +52,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
    // Giả sử lấy content từ phần tử cuối cùng
   const handleSelect = async () => {
     dispatch(selectChat(data.idRooms));
+    dispatch(updateNameRoom(data.roomName));
     select(data); // Gọi thêm hàm select từ props (nếu cần)
 
     if (connection && userId.trim()) {
