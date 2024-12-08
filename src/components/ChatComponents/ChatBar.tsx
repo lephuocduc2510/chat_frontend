@@ -34,6 +34,7 @@ interface ChatBarProps {
 export default function ChatBar({ data, select }: ChatBarProps) {
   const dispatch = useDispatch();
   const selectedChatId = useSelector((state: RootState) => state.chat.selectedChatId);
+  const room = useSelector((state: RootState) => state.rooms.rooms);
   const groupName = data.roomName || 'Group Chat'; // Tên nhóm mặc định
   const isExcedding = data.latestMessage && data.latestMessage.content.length > 35;
   const groupImg = data.groupLogo; // Lấy ảnh đại diện của nhóm hoặc người dùng đầu tiên

@@ -6,9 +6,11 @@ import groupLogo from '../../assets/images/group.png';
 // Xoá activeChat khỏi props
 interface ChatTitleProps {
   openChatModel: () => void;
+  idRooms: string;
+  // roomName: string;
 }
 
-const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel }) => {
+const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms }) => {
   return (
     <div className="flex flex-row items-center px-[5%] box-border justify-between w-[100%]">
       <div className="flex flex-row items-center">
@@ -21,7 +23,7 @@ const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel }) => {
           }}
         />
         <div className="flex flex-col ml-3">
-          <div className="text-xl font-Roboto font-semibold">Group Name</div>
+          <div className="text-xl font-Roboto font-semibold">{idRooms}</div>
         </div>
       </div>
       <div onClick={openChatModel}>

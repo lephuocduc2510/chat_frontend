@@ -12,9 +12,7 @@ interface ChatLatestState {
     [roomId: string]: ChatMessage; // Mỗi phòng lưu tin nhắn cuối cùng
   }
 
-type ChatState = {
-  messages: ChatMessage[];
-};
+
 
 const initialState: ChatLatestState = {};
 

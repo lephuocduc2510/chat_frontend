@@ -18,6 +18,7 @@ import { RootState } from "../redux/store";
 import { setIsCreatingRoomm, updateChat } from "../redux/Chat/chatSlice";
 import { useAppDispatch } from "../redux/User/hook";
 import { addMessage } from "../redux/Chat/chatLatestSlice";
+import { updateRoom } from "../redux/Chat/roomSlice";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -58,6 +59,7 @@ const HomeChat: React.FC = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const isCreatingRoom = useRoomContext();
+  const roomId = useSelector((state: RootState) => state.chat.selectedChatId) || "";
   const checkCreateRoom = useSelector((state: RootState) => state.chat.isCreatingRoom);
   const { connection } = useSignalR();
   const userId =  JSON.parse(localStorage.getItem("info") || "{}").id;
@@ -79,6 +81,7 @@ const HomeChat: React.FC = () => {
           fileUrl: messageData.fileUrl,
           roomId: messageData.roomId,
         };
+        dispatch(updateRoom(messageData.roomId));
         dispatch(addMessage(newMessage));
       });
   
@@ -89,15 +92,18 @@ const HomeChat: React.FC = () => {
     }
   },  [dispatch]);
 
-//   useEffect(() => {
-//   if (connection && userId) {
-//     chats.forEach(chat => {
-//       connection.invoke("JoinRoom", chat.idRooms, userId)
-//         .then(() => console.log(`Joined Room ${chat.idRooms}`))
-//         .catch(err => console.error(`Error joining room ${chat.idRooms}: `, err));
-//     });
-//   }
-// }, [connection, chats, userId])
+  useEffect(() => {
+  if (connection && userId) {
+    chats.forEach(chat => {
+      connection.invoke("JoinRoom", chat.idRooms, userId)
+        .then(() => console.log(`Joined Room ${chat.idRooms}`)
+      
+      
+      )
+        .catch(err => console.error(`Error joining room ${chat.idRooms}: `, err));
+    });
+  }
+}, [connection, chats, userId])
 
 
 
@@ -138,7 +144,7 @@ const HomeChat: React.FC = () => {
         <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
         <TopBar createGroup={handleOpen} />
         <div className="flex flex-row items-center border-[1px] border-[#f5f5f5]">
-          <ChatTitle openChatModel={() => setChatModel(true)} />
+          <ChatTitle openChatModel={() => setChatModel(true)}  idRooms= {roomId} />
         </div>
         <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
           {isLoading && <Loading />}
