@@ -6,6 +6,7 @@ interface ChatState {
   nameRoom: string;
   messages: string; 
   isCreatingRoom: boolean; 
+
 }
 
 // Trạng thái ban đầu
@@ -14,6 +15,7 @@ const initialState: ChatState = {
   nameRoom: "",
   messages: "", 
   isCreatingRoom: false, 
+
 };
 
 // Tạo slice cho chat
@@ -30,6 +32,7 @@ const chatSlice = createSlice({
     updateNameRoom(state, action: PayloadAction<string>) {
       state.nameRoom = action.payload; // Lưu tên phòng vào state
     },
+   
     // Action để cập nhật tin nhắn mới
     updateChat(state, action: PayloadAction<string>) {
       state.messages = action.payload; // Ghi đè chuỗi tin nhắn

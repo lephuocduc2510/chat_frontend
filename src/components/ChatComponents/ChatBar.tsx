@@ -24,6 +24,7 @@ interface ChatBarProps {
     roomName: string;
     latestMessage?: { content: string };
     createdDate: string;
+    isActive: boolean;
     notify?: boolean;
     groupLogo?: string;
     description?: string;
@@ -62,7 +63,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
         connection.on("ReceiveMessage", (messageData) => {
           // setMessages((prevMessages) => [...prevMessages, messageData]);
           // setMessages(checkMessage)
-          console.log("Message received: ", messageData);
+        
           dispatch(updateChat(messageData));
           const newMessage = {
             content: messageData.content,
@@ -71,7 +72,6 @@ export default function ChatBar({ data, select }: ChatBarProps) {
             fileUrl: messageData.fileUrl,
             roomId: messageData.roomId,
           };
-          console.log("New message: ", newMessage);
           dispatch(addMessage(newMessage));      
         });
         connection.on("UsersInRoom", (usersInRoom) => {
@@ -88,6 +88,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   };
 
   // Connect to SignalR
+
  
   useEffect(() => {
     if (connection) {
@@ -99,7 +100,6 @@ export default function ChatBar({ data, select }: ChatBarProps) {
 
 
   useEffect(() => {
-    console.log("Check chatLatest: ", chat);
     if (chat && typeof chat === "object") {
       setChatLatest(chat); // Set chatLatest với đối tượng chat
       setTime(chat.sentAt); // Lấy thời gian từ chat

@@ -32,16 +32,13 @@ interface User {
   pic: string;
 }
 
-interface LatestMessage {
-  content: string;
-}
-
 interface Chat {
   idRooms: string;
   roomName: string;
   latestMessage?: { content: string };
   createdDate: string;
   notify?: boolean;
+  isActive: boolean;
   groupLogo?: string
   description?: string;
   users: User[];
@@ -67,44 +64,44 @@ const HomeChat: React.FC = () => {
 
 
   //received message
-  useEffect(() => {
-    console.log("Connection: ", connection);
-    if (connection) {
-      connection.on("ReceiveMessage", (messageData) => {
-        console.log("Message received globally: ", messageData);
+//   useEffect(() => {
+//     console.log("Connection: ", connection);
+//     if (connection) {
+//       connection.on("ReceiveMessage", (messageData) => {
+//         console.log("Message received globally: ", messageData);
   
-        // Cập nhật tin nhắn vào Redux hoặc state
-        dispatch(updateChat(messageData));
-        const newMessage = {
-          content: messageData.content,
-          userId: messageData.userId,
-          sentAt: messageData.sentAt,
-          fileUrl: messageData.fileUrl,
-          roomId: messageData.roomId,
-        };
-        dispatch(updateRoom(messageData.roomId));
-        dispatch(addMessage(newMessage));
-      });
+//         // Cập nhật tin nhắn vào Redux hoặc state
+//         dispatch(updateChat(messageData));
+//         const newMessage = {
+//           content: messageData.content,
+//           userId: messageData.userId,
+//           sentAt: messageData.sentAt,
+//           fileUrl: messageData.fileUrl,
+//           roomId: messageData.roomId,
+//         };
+//         dispatch(updateRoom(messageData.roomId));
+//         dispatch(addMessage(newMessage));
+//       });
   
-      // Cleanup listener khi component unmount
-      return () => {
-        connection.off("ReceiveMessage");
-      };
-    }
-  },  [dispatch]);
+//       // Cleanup listener khi component unmount
+//       return () => {
+//         connection.off("ReceiveMessage");
+//       };
+//     }
+//   },  [dispatch]);
 
-  useEffect(() => {
-  if (connection && userId) {
-    chats.forEach(chat => {
-      connection.invoke("JoinRoom", chat.idRooms, userId)
-        .then(() => console.log(`Joined Room ${chat.idRooms}`)
+//   useEffect(() => {
+//   if (connection && userId) {
+//     chats.forEach(chat => {
+//       connection.invoke("JoinRoom", chat.idRooms, userId)
+//         .then(() => console.log(`Joined Room ${chat.idRooms}`)
       
       
-      )
-        .catch(err => console.error(`Error joining room ${chat.idRooms}: `, err));
-    });
-  }
-}, [connection, chats, userId])
+//       )
+//         .catch(err => console.error(`Error joining room ${chat.idRooms}: `, err));
+//     });
+//   }
+// }, [connection, chats, userId])
 
 
 
@@ -121,14 +118,12 @@ const HomeChat: React.FC = () => {
       const response = await axiosClient.get("/api/Rooms-User/get-rooms-by-user", config);
       setChats(response.data.result || []);
       setIsEmpty(response.data.result.length === 0);
-      console.log(response.data.result);
     } catch (error) {
       console.error("Error fetching rooms:", error);
     } finally {
       setIsLoading(false);
     }
   }
-
   useEffect(() => {
 
     getRoomsChat();
@@ -159,7 +154,8 @@ const HomeChat: React.FC = () => {
                 variants={fadeInUp}
               >
                 <ChatBar select={(value) => {
-                  console.log(value._id);
+                  console.log(value);
+                  console.log(value.latestMessage);
                   setRoomSelected(value._id);
                 }} data={data} />
               </motion.div>

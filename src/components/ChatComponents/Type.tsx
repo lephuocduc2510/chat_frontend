@@ -40,6 +40,7 @@ export default function Type() {
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const [message, setMessage] = useState<string>(""); // Trạng thái cho message
   const [file, setFile] = useState<File | null>(null);
+  const idRoom = useSelector((state: any) => state.chat.selectedChatId);
 
 
   const handleEmojiClick = (emoji: { native: string }) => {
@@ -161,7 +162,7 @@ export default function Type() {
       handleSend();
     }
   };
-
+  if (idRoom === null) return <></>;
   return (
     <div className="border-[1px] border-[#f5f5f5] bg-[#FFFFFF] h-[12%] flex flex-row justify-center items-center relative">
       {/* Microphone Icon */}

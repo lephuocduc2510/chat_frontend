@@ -2,6 +2,7 @@ import React from "react";
 import { Avatar } from "@mui/material";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import groupLogo from '../../assets/images/group.png';
+import { useSelector } from "react-redux";
 
 // Xoá activeChat khỏi props
 interface ChatTitleProps {
@@ -11,7 +12,14 @@ interface ChatTitleProps {
 }
 
 const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms, roomName }) => {
+
+  const activeRoom = useSelector((state: any) => state.chat.updateActive);
+  const idRoom = useSelector((state: any) => state.chat.selectedChatId);
+
+
+  if (idRoom === null) return <></>;
   return (
+
     <div className="flex flex-row items-center px-[5%] box-border justify-between w-[100%]">
       <div className="flex flex-row items-center">
         <Avatar

@@ -8,7 +8,7 @@ export default function EmptyMessages() {
         <div className='text-[#AEC0D8]'>Nothing Here</div>
         <div className='flex gap-2'>
         <div className='text-[#AEC0D8] text-sm'>No active chats </div>
-        <div className='text-[#6FB9FF] text-sm font-bold'>Start a New Chat </div>
+        <div className='text-[#6FB9FF] text-sm font-bold'>Please select room to chat </div>
         </div>
     </div>
   )
