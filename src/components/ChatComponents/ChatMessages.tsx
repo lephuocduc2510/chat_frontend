@@ -208,6 +208,7 @@ export default function ChatMessages() {
               <SenderMessage
                 time={message.sentAt}
                 content={message.content}
+                isPinned={message.isPinned}
               />
             ) : (
               <RecieverMessage
@@ -217,6 +218,7 @@ export default function ChatMessages() {
                 index={index}
                 content={message.content}
                 time={message.sentAt}
+                isPinned={message.isPinned}
               />
             )}
 
@@ -243,10 +245,11 @@ export default function ChatMessages() {
                     setActiveMessageId(null); // Ẩn menu sau khi chọn
                   }}
                 >
-                  Ghim tin nhắn
+                  {message.isPinned ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn"}
                 </button>
               </div>
             )}
+
           </div>
         );
       })}
