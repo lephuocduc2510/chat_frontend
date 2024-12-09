@@ -13,7 +13,7 @@ import GroupUserDetails from "./GroupUserInDetails";
 import DeleteIcon from '@mui/icons-material/Delete';
 import { motion } from 'framer-motion';
 import { PersonAdd } from "@mui/icons-material";
-import { selectChat } from "../../redux/Chat/chatSlice";
+import { selectChat, updateRoomDeleted } from "../../redux/Chat/chatSlice";
 
 const style = {
   position: "absolute",
@@ -99,6 +99,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   React.useEffect(() => {
     if (idRoom !== null && chatModel === true) {
       getUser();
+      dispatch(updateRoomDeleted(idRoom));
     }
   },
     [chatModel]);
@@ -150,7 +151,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
       notify("Chat deleted successfully");
       closeModal();
       closeModelHandler();
-      dispatch(selectChat(''));
+      dispatch(updateRoomDeleted(''));
     } else {
       notify("error", "Error deleting chat");
     }

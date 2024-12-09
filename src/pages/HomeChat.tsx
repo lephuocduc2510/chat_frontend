@@ -56,6 +56,7 @@ const HomeChat: React.FC = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const isCreatingRoom = useRoomContext();
+  const roomIdDeleted = useSelector((state: RootState) => state.chat.roomDelete) || "";
   const roomId = useSelector((state: RootState) => state.chat.selectedChatId) || "";
   const roomName = useSelector((state: RootState) => state.chat.nameRoom) || "";
   const checkCreateRoom = useSelector((state: RootState) => state.chat.isCreatingRoom);
@@ -127,7 +128,7 @@ const HomeChat: React.FC = () => {
   useEffect(() => {
 
     getRoomsChat();
-  }, [roomId]);
+  }, [roomIdDeleted]);
 
 
 
