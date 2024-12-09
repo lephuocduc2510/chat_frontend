@@ -127,7 +127,7 @@ const HomeChat: React.FC = () => {
   useEffect(() => {
 
     getRoomsChat();
-  }, []);
+  }, [roomId]);
 
 
 

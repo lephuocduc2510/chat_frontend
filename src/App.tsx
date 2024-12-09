@@ -14,12 +14,14 @@ import Settings from './pages/Settings';
 // import NotFoundPage from './pages/404Page';
 
 import Root, { loader as loadingAction } from './pages/Root';
+
 import Users from './pages/admin/user';
 import AdminHome from './pages/admin/home';
 import Rooms from './pages/admin/room';
 import RoomsUser from './pages/admin/roomUser';
 import HeaderAdmin from './pages/admin/header';
-import AdminLayout from './pages/admin/layout';
+import AdminLayout, {loader as loadingActionAdmin} from './pages/admin/layout';
+import NotFoundPage from './pages/404NotFound';
 // import Search from './pages/Search';
 
 
@@ -80,7 +82,7 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     element: <AdminLayout></AdminLayout>,
-    loader: loadingAction,
+    loader: loadingActionAdmin,
     children: [
       {
         path: 'users',
@@ -102,6 +104,10 @@ const router = createBrowserRouter([
         ]
       }
     ]
+  },
+  {
+    path:'*',
+    element:<NotFoundPage></NotFoundPage>
   }
 ]);
 function App() {

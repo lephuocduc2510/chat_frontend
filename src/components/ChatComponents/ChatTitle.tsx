@@ -13,11 +13,11 @@ interface ChatTitleProps {
 
 const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms, roomName }) => {
 
-  const activeRoom = useSelector((state: any) => state.chat.updateActive);
+
   const idRoom = useSelector((state: any) => state.chat.selectedChatId);
 
 
-  if (idRoom === null) return <></>;
+  if ( idRoom === null || idRoom === '') return <></>;
   return (
 
     <div className="flex flex-row items-center px-[5%] box-border justify-between w-[100%]">

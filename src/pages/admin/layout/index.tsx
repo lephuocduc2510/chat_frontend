@@ -18,7 +18,7 @@ interface User {
 }
 
 export default function AdminLayout() {
- 
+
 
 
   return (
@@ -39,7 +39,10 @@ export default function AdminLayout() {
           <UserCard />
         </div>
       </div>
-      <Outlet />
+      {/* Phần bên phải sẽ chiếm phần còn lại của màn hình */}
+      <div className="flex-grow">
+        <Outlet />
+      </div>
     </div>
   );
 }
@@ -54,18 +57,23 @@ interface LoaderArgs {
 
 export async function loader({ request }: LoaderArgs) {
 
-  
+
   const cookie = localStorage.getItem('token');
-  const config = {  
+  const config = {
     headers: { Authorization: `Bearer ${cookie}` },
   };
 
   if (cookie === null) {
-   return redirect('/login');
+    return redirect('/login');
   }
- 
+  const role = JSON.parse(atob(cookie.split('.')[1])).role;
+  console.log(role);
+  if (role !== 'admin') {
+    return redirect('/404');
+  }
+
   const username = JSON.parse(atob(cookie.split('.')[1])).unique_name;
- 
+
   const response = await axiosClient.get(`/api/user/${username}`, config);
   const user = response.data.result;
 
@@ -77,7 +85,7 @@ export async function loader({ request }: LoaderArgs) {
 
   // Render lại trang khi có thay đổi trong localStorage
 
-  
-  
+
+
 
 }
