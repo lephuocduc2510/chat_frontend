@@ -17,22 +17,26 @@ import { selectChat, updateRoomDeleted } from "../../redux/Chat/chatSlice";
 import AddUserToRoom from "./AddUserToRoom";
 
 const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  // -webkit-transform: translate(-50%, -50%);
-  width: window.innerWidth / 3,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  borderRadius: "14px",
-  p: 4,
-  display: "flex",
-  alignItems: "center",
-  flexDirection: "column",
-  outline: "none",
-  maxWidth: "700px", // Giới hạn chiều rộng
-  maxHeight: "850px", // Giới hạn chiều cao để không vượt quá viewport
-  overflowY: "auto", 
+  
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: window.innerWidth / 3,
+    bgcolor: "background.paper",
+    boxShadow: 24,
+    borderRadius: "14px",
+    p: 4,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",  // Căn giữa nội dung theo chiều ngang
+    flexDirection: "column",
+    outline: "none",
+    maxWidth: "700px", // Giới hạn chiều rộng
+    maxHeight: "850px", // Giới hạn chiều cao để không vượt quá viewport
+    overflowY: "auto",
+    marginTop: "-23%",  // Căn giữa theo chiều dọc
+    marginLeft: "-15%", // Điều chỉnh theo chiều ngang (có thể thay đổi giá trị này)
+  
 };
 
 interface ChatDetailsProps {

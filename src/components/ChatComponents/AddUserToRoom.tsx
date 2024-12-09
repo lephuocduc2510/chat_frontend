@@ -4,6 +4,9 @@ import { Group } from "@mui/icons-material"; // Import axiosClient hoặc endpoi
 import { axiosClient } from "../../libraries/axiosClient";
 import Loading from "../../pages/util/Loading";
 import CircularLoading from "./CircularLoading";
+import { toast } from "react-toastify";
+import { on } from "events";
+import { useSelector } from "react-redux";
 
 interface User {
     id: string;
@@ -26,6 +29,7 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
     const [searchTerm, setSearchTerm] = useState(""); // Từ khóa tìm kiếm
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]); // Người dùng đã lọc
     const [checkEmpty, setCheckEmpty] = useState(false);
+    const idRoom = useSelector((state: any) => state.chat.selectedChatId);
 
     const [formData, setFormData] = useState<FormData>({
         roomName: "",
@@ -116,7 +120,7 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
         };
         const idUser = groupUsers.map((user) => user.id);
         const data = {
-            idRooms: formData.roomName, // Chắc chắn phòng (room) được xác định
+            idRooms: idRoom, // Chắc chắn phòng (room) được xác định
             idUser: idUser,
             idPerAdd: "string", // Điều chỉnh tham số này cho đúng
         };
@@ -132,6 +136,8 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
                 // Reset thông tin sau khi thêm
                 setGroupUsers([]);
                 setFormData({ roomName: "", friends: [], description: "" });
+                toast.success("Add user to room successfully");
+                onBack();
             }
         } catch (error) {
             console.error("Failed to add user to room:", error);
