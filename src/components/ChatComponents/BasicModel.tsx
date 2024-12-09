@@ -53,7 +53,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
   const [idRoom, setIdRoom] = React.useState<string>("");
   const [users, setUsers] = React.useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = React.useState<User[]>([]);
-  const [groupUsers, setGroupUsers] = React.useState<User[]>([])
+  const [groupUsers, setGroupUsers] = React.useState<User[]>([{ id: idUser, name: storedData.name, imageUrl: storedData.imageUrl, userName: storedData.userName }]);
   const [searchTerm, setSearchTerm] = React.useState(""); // Từ khóa tìm kiếm
   const [checkSent, setCheckSent] = React.useState(false);
   const isFirstRender = React.useRef(true); // Biến đánh dấu lần render đầu tiên

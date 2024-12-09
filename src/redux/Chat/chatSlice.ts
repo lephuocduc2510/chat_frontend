@@ -6,6 +6,7 @@ interface ChatState {
   nameRoom: string;
   messages: string; 
   isCreatingRoom: boolean; 
+  roomDelete: string
 
 }
 
@@ -15,6 +16,7 @@ const initialState: ChatState = {
   nameRoom: "",
   messages: "", 
   isCreatingRoom: false, 
+  roomDelete: ""
 
 };
 
@@ -41,6 +43,11 @@ const chatSlice = createSlice({
     appendChat(state, action: PayloadAction<string>) {
       state.messages += (state.messages ? "\n" : "") + action.payload; // Nối tin nhắn với dòng mới
     },
+
+    //Action để lấy ra id phòng vừa xoá
+    updateRoomDeleted(state, action: PayloadAction<string>) {
+      state.roomDelete = action.payload; // Lưu ID vào state
+    },
     // Action để thay đổi trạng thái tạo phòng
     setIsCreatingRoomm(state, action: PayloadAction<boolean>) {
       state.isCreatingRoom = action.payload; // Cập nhật trạng thái
@@ -49,5 +56,5 @@ const chatSlice = createSlice({
 });
 
 // Export actions và reducer
-export const { selectChat, updateChat, appendChat, setIsCreatingRoomm, updateNameRoom } = chatSlice.actions; // Export các action
+export const { selectChat, updateChat, appendChat, setIsCreatingRoomm, updateNameRoom, updateRoomDeleted } = chatSlice.actions; // Export các action
 export default chatSlice.reducer; // Export reducer

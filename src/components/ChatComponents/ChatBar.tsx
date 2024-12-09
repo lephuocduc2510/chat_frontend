@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Avatar } from '@mui/material';
 import Badge from './util/Badge';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectChat, updateChat, updateNameRoom } from '../../redux/Chat/chatSlice';
+import { selectChat, updateChat, updateNameRoom, updateRoomDeleted } from '../../redux/Chat/chatSlice';
 import { RootState } from '../../redux/store';
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { useSignalR } from '../../context/SignalRContext';

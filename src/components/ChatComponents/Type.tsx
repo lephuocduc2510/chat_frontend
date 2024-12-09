@@ -27,6 +27,7 @@ export default function Type() {
   const [message, setMessage] = useState<string>(""); // Message content
   const [file, setFile] = useState<File | null>(null); // File for upload
   const [previewUrl, setPreviewUrl] = useState<string | null>(null); // Preview URL for image
+  const idRoom = useSelector((state: any) => state.chat.selectedChatId);
 
   const handleEmojiClick = (emoji: { native: string }) => {
     setMessage((prevMessage) => prevMessage + emoji.native);
@@ -88,9 +89,7 @@ export default function Type() {
       handleSend();
     }
   };
-
-  if (roomId === null) return <></>;
-
+  if (idRoom === null || idRoom === '') return <></>;
   return (
     <div className="border-[1px] border-[#f5f5f5] bg-[#FFFFFF] h-[12%] flex flex-row justify-center items-center relative">
       {/* Microphone Icon */}
