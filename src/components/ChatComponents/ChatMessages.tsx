@@ -10,6 +10,8 @@ import { format } from 'date-fns'; // Thư viện để định dạng ngày
 import { isToday, isYesterday } from 'date-fns';
 import { selectChat, updateChat } from "../../redux/Chat/chatSlice";
 import { get } from "http";
+import { BsThreeDotsVertical } from "react-icons/bs"; // Thư viện icon, ví dụ react-icons
+import './ChatMessages.css';
 
 
 // Định nghĩa kiểu Message
@@ -54,6 +56,7 @@ export default function ChatMessages() {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   };
+  const [activeMessageId, setActiveMessageId] = useState<number | null>(null);
 
   // Hàm lấy tin nhắn từ API
   const getMessages = async () => {
@@ -75,10 +78,10 @@ export default function ChatMessages() {
 
       else {
         if (isNearBottom()) {
-           setShouldScroll(true);
-          setShowNewMessageAlert(false); 
+          setShouldScroll(true);
+          setShowNewMessageAlert(false);
         } else {
-          setShowNewMessageAlert(true); 
+          setShowNewMessageAlert(true);
         }
       }
       setMessages(response.data.result || []);
@@ -156,6 +159,25 @@ export default function ChatMessages() {
     scrollToBottom();
     setShowNewMessageAlert(false);
   };
+
+  const pinMessage = async (messageId: number) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      };
+      // Gọi API pin với messageId
+      const response = await axiosClient.put(`/api/Messages/pin/${messageId}`, {}, config);
+      if (response.status === 200) {
+        console.log(`Tin nhắn ${messageId} đã được ghim`);
+      }
+    } catch (error) {
+      console.error("Lỗi khi ghim tin nhắn:", error);
+    }
+  };
+
+
   return (
     <div ref={containerRef} className="w-[100%] h-[88%] px-[3%] overflow-y-scroll no-scrollbar py-[2%] box-border relative flex flex-col">
       {/* Loading và thông báo nếu không có tin nhắn */}
@@ -163,6 +185,7 @@ export default function ChatMessages() {
       {!loading && messages.length === 0 && <EmptyMessages />}
 
       {/* Hiển thị các tin nhắn */}
+
       {messages.map((message, index) => {
         const isSender = message.userId === userId;
         const userName = message.user?.name || "Unknown User";
@@ -172,15 +195,15 @@ export default function ChatMessages() {
         const showDateHeader = isMessageNewDay(message, messages[index - 1]);
 
         return (
-          <div key={message.messageId}>
+          <div key={message.messageId} className="relative group flex items-start">
             {/* Nếu tin nhắn là tin nhắn mới ngày thì hiển thị tiêu đề ngày */}
             {showDateHeader && (
               <div className="rounded-md px-4 py-2 my-4 bg-slate-200 text-slate-600 font-medium text-sm text-center">
-                {formatDateHeader(message.sentAt)} {/* Hiển thị ngày đã định dạng */}
+                {formatDateHeader(message.sentAt)}
               </div>
             )}
 
-            {/* Render tin nhắn của người gửi hoặc người nhận */}
+            {/* Tin nhắn của người gửi hoặc người nhận */}
             {isSender ? (
               <SenderMessage
                 time={message.sentAt}
@@ -196,22 +219,37 @@ export default function ChatMessages() {
                 time={message.sentAt}
               />
             )}
+
+            {/* Dấu ba chấm và menu tùy chọn */}
+            <div className="ml-2 self-start group-hover:block">
+              <BsThreeDotsVertical
+                className="text-gray-500 cursor-pointer"
+                onClick={() =>
+                  setActiveMessageId(
+                    activeMessageId === message.messageId ? null : message.messageId
+                  )
+                }
+              />
+            </div>
+
+            {/* Menu tùy chọn */}
+            {activeMessageId === message.messageId && (
+              <div className="absolute top-6 right-4 bg-white shadow-md rounded-lg border py-2 px-3 z-10">
+                <button
+                  className="text-sm text-gray-700 hover:text-blue-600 w-full text-left"
+                  onClick={() => {
+                    // Gọi API hoặc xử lý ghim tin nhắn
+                    pinMessage(message.messageId);
+                    setActiveMessageId(null); // Ẩn menu sau khi chọn
+                  }}
+                >
+                  Ghim tin nhắn
+                </button>
+              </div>
+            )}
           </div>
-
         );
-
-
       })}
-      {/* Thông báo tin nhắn mới nằm ngoài vòng lặp, chỉ hiển thị khi cần */}
-      {showNewMessageAlert && (
-        <div
-          className="sticky bottom-4 left-4 w-[35%] bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-md border border-blue-300 cursor-pointer"
-          onClick={handleNewMessageClick}
-        >
-          Bạn có tin nhắn mới!
-        </div>
-      )}
-
 
     </div>
 

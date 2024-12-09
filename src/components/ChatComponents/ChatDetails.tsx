@@ -53,6 +53,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   const idRoom = useSelector((state: RootState) => state.chat.selectedChatId);
   const [isModalConfirm, setIsModalConfirm] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
+  const [pinnedMessages, setPinnedMessages] = React.useState<PinnedMessage[]>([]);
+
   const dispatch = useDispatch();
 
   const openModal = () => {
@@ -62,7 +64,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   const closeModal = () => {
     setIsModalConfirm(false);
   };
-
+  interface PinnedMessage {
+    messageId: string;
+    content: string;
+    sentAt: string;
+    user: {
+      name: string;
+    };
+  }
+  
 
   const notify = (errorname: string, value?: string) => {
     if (errorname === "error") {
@@ -94,6 +104,24 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
     setResults([]);
     closeChat();
   };
+// Fetch pinned messages
+const getPinnedMessages = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const response = await axiosClient.get(`/api/Messages/room/${idRoom}/pinned-messages`, config);
+
+    console.log("API Response:", response.data.result); // Debug dữ liệu trả về từ API
+
+    setPinnedMessages(response.data.result || []);
+  } catch (error) {
+    console.error("Error fetching pinned messages:", error);
+  }
+};
 
 
   React.useEffect(() => {
@@ -103,6 +131,13 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
     }
   },
     [chatModel]);
+
+    // Gọi API khi chatModel mở
+React.useEffect(() => {
+  if (chatModel && idRoom) {
+    getPinnedMessages();
+  }
+}, [chatModel, idRoom]);
 
   //////////////////// Get user ///////////////////////
   const getUser = async () => {
@@ -203,43 +238,74 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
           </div>
           {/* // User in room */}
           <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-10">
-            <label
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex justify-between items-center text-base px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <span>List user in room</span>
-              <FaChevronDown
-                className={`transform transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`} // Hiệu ứng xoay icon
-              />
-            </label>
-            {isDropdownOpen && (
-              <div className="mt-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg shadow-inner bg-gray-50">
-                {users.length ? (
-                  users.map((user) => (
-                    <div key={user.id} className="px-4 py-2 hover:bg-blue-100">
-                      <GroupUserDetails
-                        values={{ id: user.id, pic: user.imageUrl, name: user.name, email: user.userName, role: user.role }}
-                        add={() => { }}
-                        remove={(user) => { handleRemoveUser(user.id) }}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className="mt-5 px-4 py-2 text-gray-500 text-sm">No users found</div>
-                )}
-              </div>
-            )}
-
-            <div
-              className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2"
-            // onClick={addUserHandler} // Gọi hàm thêm người dùng khi nhấn vào dấu cộng
-            >
-              <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
-                <FaPlus className="text-blue-500" size={15} /> {/* Biểu tượng dấu cộng */}
-              </div>
-              <span className="ml-2 text-blue-500">Add User</span> {/* Văn bản "Add User" */}
-            </div>
+  <label
+    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+    className="flex justify-between items-center text-base px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
+  >
+    <span>List user in room</span>
+    <FaChevronDown
+      className={`transform transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : "rotate-0"}`}
+    />
+  </label>
+  {isDropdownOpen && (
+    <div className="mt-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg shadow-inner bg-gray-50">
+      {users.length ? (
+        users.map((user) => (
+          <div key={user.id} className="px-4 py-2 hover:bg-blue-100">
+            <GroupUserDetails
+              values={{
+                id: user.id,
+                pic: user.imageUrl,
+                name: user.name,
+                email: user.userName,
+                role: user.role,
+              }}
+              add={() => {}}
+              remove={(user) => {
+                handleRemoveUser(user.id);
+              }}
+            />
           </div>
+        ))
+      ) : (
+        <div className="mt-5 px-4 py-2 text-gray-500 text-sm">No users found</div>
+      )}
+    </div>
+  )}
+
+  <div
+    className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2"
+  >
+    <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
+      <FaPlus className="text-blue-500" size={15} />
+    </div>
+    <span className="ml-2 text-blue-500">Add User</span>
+  </div>
+</div>
+
+{/* Pinned Messages Section */}
+<div className="pinned-messages mt-8 w-full max-w-lg mx-auto bg-white rounded-lg shadow-md">
+  <h3 className="text-lg font-bold mb-3">Pinned Messages</h3>
+  {pinnedMessages.length > 0 ? (
+  pinnedMessages.map((message) => (
+    <div key={message.messageId} className="p-3 mb-2 bg-gray-100 rounded-md shadow-sm">
+      <Typography variant="body2" className="text-gray-700">
+        {message.content}
+      </Typography>
+      <Typography variant="caption" className="text-gray-500">
+        {message.user.name} - {new Date(message.sentAt).toLocaleString()}
+      </Typography>
+    </div>
+  ))
+) : (
+  <Typography variant="body2" className="text-gray-500">
+    No pinned messages.
+  </Typography>
+)}
+
+</div>
+
+
 
           {/* Phần tử "Add User" */}
           {/* <motion.div
@@ -319,6 +385,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
             </Modal>
 
           </div>
+          
         </Box>
       </Modal>
     </div>
