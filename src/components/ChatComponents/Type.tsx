@@ -1,16 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+
+import React, { useState } from "react";
 import MicIcon from "@mui/icons-material/Mic";
 import SendIcon from "@mui/icons-material/Send";
-import { Box, IconButton } from "@mui/material";
-import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
+import { IconButton, CircularProgress } from "@mui/material";
+import PhotoIcon from "@mui/icons-material/Photo";
+import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
-import store, { RootState } from "../../redux/store";
-import { axiosClient } from "../../libraries/axiosClient";
-import { selectChat, updateChat } from "../../redux/Chat/chatSlice";
-import { HubConnection } from "@microsoft/signalr";
-import { useSignalR } from "../../context/SignalRContext";
+import { RootState } from "../../redux/store";
 import { addMessage } from "../../redux/Chat/chatLatestSlice";
-
+import { useSignalR } from "../../context/SignalRContext";
 
 type ChatMessage = {
   userId: string;
@@ -25,42 +23,51 @@ type ChatMessage = {
 interface FileUploadProps {
   userId: string;
   roomId: string;
-  sendMessage: (content: string, fileHtml: string) => void;
-}
-
-interface MessageInputProps {
-  onFileChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
+};
 
 export default function Type() {
   const dispatch = useDispatch();
   const { connection } = useSignalR();
-  const [openPicker, setOpenPicker] = useState<boolean>(false);
-  const emojiPickerRef = useRef<HTMLDivElement | null>(null);
-  const roomId = useSelector((state: RootState) => state.chat.selectedChatId);
-  const storedData = JSON.parse(localStorage.getItem("info") || "{}");
-  const [message, setMessage] = useState<string>(""); // Trạng thái cho message
+  const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
-  const idRoom = useSelector((state: any) => state.chat.selectedChatId);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const idRoom = useSelector((state: RootState) => state.chat.selectedChatId);
+  const storedData = JSON.parse(localStorage.getItem("info") || "{}");
 
+  const sendMessage = async (content: string, fileUrl: string | null = null) => {
+    if (!content.trim() && !fileUrl) {
+      console.warn("Empty message or file cannot be sent.");
+      return;
+    }
 
-  const handleEmojiClick = (emoji: { native: string }) => {
-    setMessage(prevMessage => prevMessage + emoji.native); // Thêm emoji vào tin nhắn
-  };
-
-
-  
-   // Hàm gửi message qua SignalR
-   const sendMessage = async (message: string, fileHtml: string | null = null) => {
-    if (connection && message.trim()) {
+    if (connection) {
+      setIsLoading(true); // Start loading
       try {
-        await connection.invoke("SendMessage", message, fileHtml);
-        console.log("Message sent: ", message, fileHtml);
+        await connection.invoke("SendMessage", content, fileUrl);
+        console.log("Message sent:", content, fileUrl);
+
+        const newMessage: ChatMessage = {
+          content,
+          sentAt: new Date().toISOString(),
+          userId: storedData.id,
+          fileUrl: fileUrl || "",
+          roomId: idRoom || "",
+        };
+        dispatch(addMessage(newMessage));
       } catch (err) {
-        console.error("Error sending message: ", err);
+        console.error("Error sending message:", err);
+      } finally {
+        setIsLoading(false); // Stop loading
       }
     }
   };
+
+  const handleFileUpload = async () => {
+    if (file && idRoom) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("UserId", storedData.id);
 
 
   // Xử lý gửi tin nhắn
@@ -79,131 +86,165 @@ export default function Type() {
       dispatch(addMessage(newMessage))
       console.log("Updated Redux State: ", store.getState().chatLatest);
       setMessage(""); // Xóa nội dung input sau khi gửi
+      setIsLoading(true); // Start loading
+      try {
+        const response = await fetch(
+          `https://localhost:7001/api/Messages/upload-file/${idRoom}`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("File upload failed");
+        }
+
+        const result = await response.json();
+        const fileUrl = result.fileUrl;
+
+        await sendMessage("", fileUrl); // Send file URL
+        console.log("File uploaded successfully:", fileUrl);
+
+        setFile(null); // Reset file state
+        setPreviewUrl(null);
+      } catch (err) {
+        console.error("Error uploading file:", err);
+      } finally {
+        setIsLoading(false); // Stop loading
+      }
     }
   };
 
-
-  // UPLOAD FILE
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files ? event.target.files[0] : null;
-    setFile(selectedFile); // Get the selected file
-  };
-
-  // const handleFileUpload = async () => {
-  //   if (file && userId.trim() && roomId) {
-  //     const formData = new FormData();
-  //     formData.append("file", file);
-  //     formData.append("UserId", userId);
-
-  //     try {
-  //       const response = await fetch(`https://localhost:7001/api/Messages/upload-file/${roomId}`, {
-  //         method: "POST",
-  //         body: formData,
-  //       });
-
-  //       if (!response.ok) {
-  //         console.error("File upload failed");
-  //         return;
-  //       }
-
-  //       const result = await response.json();
-  //       console.log("API Response:", result);
-
-  //       const fileHtml = result.content || 
-  //         `<a href="${result.fileUrl}" target="_blank"><img src="${result.fileUrl}" class="post-image" alt="file image"></a>`;
-
-  //       if (!result.content && !result.fileUrl) {
-  //         console.error("Invalid API response: No content or fileUrl found.");
-  //         return;
-  //       }
-
-  //       sendMessage("", fileHtml); // Gửi tin nhắn với nội dung file
-  //       console.log(`File uploaded successfully: ${fileHtml}`);
-  //     } catch (err) {
-  //       console.error("Error uploading file: ", err);
-  //     }
-  //   } else {
-  //     alert("User ID or Room ID is missing, or no file selected.");
-  //   }
-  // };
-
-  // Api to chat
-
-  // const handleSendMessage = async () => {
-  //   if (!messages.trim()) return; // Kiểm tra xem tin nhắn có trống không
-  //   setMessages('')
-  //   const config = {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   };
-
-  //   const data = {
-  //     content: messages,
-  //     userId: userId,
-  //     roomId: roomId,
-  //     fileUrl: "string", // Giả sử chưa có file
-  //     sentAt: new Date().toISOString(),
-  //   };
-
-  //   try {
-  //     const response = await axiosClient.post('/api/Messages', data, config);
-  //     console.log(response.data.result);
-  //     dispatch(updateChat(response.data.result))
-
-  //   ; // Reset lại tin nhắn sau khi gửi
-  //   } catch (error) {
-  //     console.error("Error sending message:", error);
-  //   }
-  // };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      //xoá giá trị mặc định của textarea khi nhấn Enter     
-      e.preventDefault();
-      handleSend();
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile));
     }
   };
-  if (idRoom === null || idRoom === '') return <></>;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (message.trim()) {
+        sendMessage(message); // Send message
+        setMessage(""); // Clear input
+      } else if (file) {
+        handleFileUpload(); // Upload file
+      }
+    }
+  };
+
+  const removePreview = () => {
+    setFile(null);
+    setPreviewUrl(null);
+  };
+
+  if (!idRoom) return <></>;
+
   return (
     <div className="border-[1px] border-[#f5f5f5] bg-[#FFFFFF] h-[12%] flex flex-row justify-center items-center relative">
-      {/* Microphone Icon */}
-      <div>
-        <MicIcon sx={{ width: 38, cursor: "pointer" }} style={{ position: "absolute", top: "50%", left: "7%", translate: "-4% -50%" }} color="info" />
-      </div>
+      {/* Display image preview */}
+      {previewUrl && (
+        <div
+          style={{
+            position: "absolute",
+            top: "-80px",
+            left: "10px",
+            zIndex: 10,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <img
+            src={previewUrl}
+            alt="Preview"
+            className="w-16 h-16 object-cover rounded-md shadow-md"
+          />
+          <IconButton
+            style={{
+              position: "absolute",
+              top: "-10px",
+              right: "-10px",
+              backgroundColor: "white",
+              border: "1px solid #ccc",
+            }}
+            size="small"
+            onClick={removePreview}
+          >
+            <CloseIcon fontSize="small" color="error" />
+          </IconButton>
+        </div>
+      )}
 
-      {/* Emoji Picker */}
-      <Box
+      {/* Microphone Icon */}
+      <MicIcon
+        sx={{ width: 38, cursor: "pointer" }}
         style={{
-          zIndex: 10,
-          left: "47%",
-          position: "fixed",
-          display: openPicker ? "inline" : "none",
-          bottom: 81,
+          position: "absolute",
+          top: "50%",
+          left: "7%",
+          translate: "-4% -50%",
+        }}
+        color="info"
+      />
+
+      {/* Upload Image Button */}
+      <label htmlFor="file-upload" style={{ position: "absolute", left: "1%" }}>
+        <input
+          id="file-upload"
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+        <IconButton component="span">
+          <PhotoIcon color="action" fontSize="medium" />
+        </IconButton>
+      </label>
+
+      {/* Send Button */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "95%",
+          transform: "translate(-95%, -50%)",
         }}
       >
-        {/* <EmojiPicker theme={theme.palette.mode} onEmojiClick={handleEmojiClick} /> */}
-      </Box>
-
-      <IconButton onClick={() => setOpenPicker(!openPicker)}>
-        <InsertEmoticonIcon />
-      </IconButton>
-
-      {/* Send Icon */}
-      <div style={{ position: "absolute", top: "50%", left: "95%", translate: "-95% -50%", cursor: "pointer" }} onClick={handleSend}>
-        <SendIcon color="action" sx={{ width: 22 }} />
+        {isLoading ? (
+          <CircularProgress size={20} />
+        ) : (
+          <SendIcon
+            color={message.trim() || file ? "action" : "disabled"}
+            sx={{
+              width: 22,
+              cursor: message.trim() || file ? "pointer" : "not-allowed",
+            }}
+            onClick={() => {
+              if (message.trim()) {
+                sendMessage(message);
+                setMessage("");
+              } else if (file) {
+                handleFileUpload();
+              }
+            }}
+          />
+        )}
       </div>
 
       {/* Textarea */}
-      <textarea
-        spellCheck="false"
-        data-gramm="false"
-        placeholder="Type a message"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown} // Gửi tin nhắn khi nhấn Enter
-        className="bg-gray-100 resize-none font-Roboto box-border max-[1024px]:px-8 px-[6%] flex text-md max-[900px]:text-sm w-[95%] py-[10px] outline-none h-[70%] rounded-3xl leading-[43px]"
-      />
+      <div className="bg-gray-100 resize-none font-Roboto box-border px-[6%] flex text-md w-[85%] py-[5px] outline-none h-[50%] rounded-3xl">
+        <textarea
+          spellCheck="false"
+          placeholder="Type a message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-full bg-transparent outline-none resize-none"
+        />
+      </div>
     </div>
   );
 }

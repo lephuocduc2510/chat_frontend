@@ -1,0 +1,22 @@
+/* ChatMessages.css */
+
+.group:hover .group-hover\:block {
+    display: block;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  .relative {
+    position: relative;
+  }
+  
+  .absolute {
+    position: absolute;
+  }
+  
+  .z-10 {
+    z-index: 10;
+  }
+  

@@ -138,6 +138,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
         <div className="flex flex-col ml-2">
           <div className="font-bold font-Roboto text-sm">{groupName}</div>
           <div className="text-xs text-[#979797]">
+
             {userId !== chatLatest.userId ? (
               chatLatest?.content && !chatLatest.content.includes('<a href="') ? (
                 <span>
@@ -165,6 +166,9 @@ export default function ChatBar({ data, select }: ChatBarProps) {
                 </div>
               )
             )}
+
+           {chatLatest?.content} 
+            {isExcedding ? '.....' : ''}
           </div>
 
 
