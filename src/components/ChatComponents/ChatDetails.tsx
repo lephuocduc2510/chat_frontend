@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { PersonAdd } from "@mui/icons-material";
 import { selectChat, updateRoomDeleted } from "../../redux/Chat/chatSlice";
 import AddUserToRoom from "./AddUserToRoom";
+import PinnedMessages from "./PinMessages";
 
 const style = {
   
@@ -62,6 +63,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   const [isModalConfirm, setIsModalConfirm] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [pinnedMessages, setPinnedMessages] = React.useState<PinnedMessage[]>([]);
+  const [isPinnedDropdownOpen, setIsPinnedDropdownOpen] = React.useState<boolean>(true);
+
   const dispatch = useDispatch();
 
   const openModal = () => {
@@ -71,6 +75,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   const closeModal = () => {
     setIsModalConfirm(false);
   };
+  interface PinnedMessage {
+    messageId: string;
+    content: string;
+    sentAt: string;
+    user: {
+      name: string;
+      imageUrl: string;
+    };
+  }
 
   // Hàm hiển thị component AddUserToRoom
   const handleAddUserClick = () => {
@@ -113,6 +126,24 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
     setResults([]);
     closeChat();
   };
+  // Fetch pinned messages
+  const getPinnedMessages = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axiosClient.get(`/api/Messages/room/${idRoom}/pinned-messages`, config);
+
+      console.log("API Response:", response.data.result); // Debug dữ liệu trả về từ API
+
+      setPinnedMessages(response.data.result || []);
+    } catch (error) {
+      console.error("Error fetching pinned messages:", error);
+    }
+  };
 
 
   React.useEffect(() => {
@@ -122,6 +153,13 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
     }
   },
     [chatModel]);
+
+  // Gọi API khi chatModel mở
+  React.useEffect(() => {
+    if (chatModel && idRoom) {
+      getPinnedMessages();
+    }
+  }, [chatModel, idRoom]);
 
   //////////////////// Get user ///////////////////////
   const getUser = async () => {
@@ -221,15 +259,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
             ></input>
             <button className="bg-[#014DFE] text-white text-lg ml-2 px-2 py-1 mt-4 rounded-sm">Change</button>
           </div>
-          {/* // User in room */}
-          <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-10">
+          {/* List users in room */}
+          <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-6"> {/* Giảm margin-top từ 10 xuống 6 */}
             <label
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex justify-between items-center text-base px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <span>List user in room</span>
               <FaChevronDown
-                className={`transform transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`} // Hiệu ứng xoay icon
+                className={`transform transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : "rotate-0"}`}
               />
             </label>
             {isDropdownOpen && (
@@ -238,9 +276,17 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
                   users.map((user) => (
                     <div key={user.id} className="px-4 py-2 hover:bg-blue-100">
                       <GroupUserDetails
-                        values={{ id: user.id, pic: user.imageUrl, name: user.name, email: user.userName, role: user.role }}
+                        values={{
+                          id: user.id,
+                          pic: user.imageUrl,
+                          name: user.name,
+                          email: user.userName,
+                          role: user.role,
+                        }}
                         add={() => { }}
-                        remove={(user) => { handleRemoveUser(user.id) }}
+                        remove={(user) => {
+                          handleRemoveUser(user.id);
+                        }}
                       />
                     </div>
                   ))
@@ -249,6 +295,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
                 )}
               </div>
             )}
+            </div>
 
             <div>
               {!showAddUser ? (
@@ -266,91 +313,70 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
                 // Hiển thị component AddUserToRoom
                 <AddUserToRoom onBack={handleBack} />
               )}
+  
+            <div className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
+                <FaPlus className="text-blue-500" size={15} />
+              </div>
+              <span className="ml-2 text-blue-500">Add User</span>
             </div>
           </div>
-
-          {/* Phần tử "Add User" */}
-          {/* <motion.div
-            className="flex flex-row items-center mt-4 p-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-          // onClick={clickHandler} // Xử lý sự kiện khi nhấn "Add User"
-          >
-            <PersonAdd style={{ fontSize: '24px' }} />
-            <div className="ml-2 font-semibold">Add User</div> 
-          </motion.div> */}
-
-
+  
+          {/* Pinned Messages */}
+          <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-4"> {/* Giảm margin-top từ 10 xuống 4 */}
+            <label
+              onClick={() => setIsPinnedDropdownOpen(!isPinnedDropdownOpen)}
+              className="flex justify-between items-center text-base px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <span>Pinned Messages</span>
+              <FaChevronDown
+                className={`transform transition-transform duration-300 ${isPinnedDropdownOpen ? "rotate-180" : "rotate-0"}`}
+              />
+            </label>
+            {isPinnedDropdownOpen && (
+              <div className="mt-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg shadow-inner bg-gray-50">
+                {pinnedMessages.length > 0 ? (
+                  pinnedMessages.map((message) => (
+                    <div key={message.messageId} className="p-3 mb-2 bg-gray-100 rounded-md shadow-sm">
+                      <PinnedMessages
+                        values={{
+                          content: message.content,
+                          name: message.user.name,
+                          sentAt: new Date(message.sentAt).toLocaleString(),
+                          pic: message.user.imageUrl,
+                        }}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <Typography variant="body2" className="text-gray-500">
+                    No pinned messages.
+                  </Typography>
+                )}
+              </div>
+            )}
+          </div>
+  
           <div className="mt-10">
-
-
-            <button className="text-[#0147FF] text-xl border-[2px] border-[#0147FF] px-4 py-1 ml-2 mt-4 rounded-lg" onClick={closeModelHandler}>
+            <button
+              className="text-[#0147FF] text-xl border-[2px] border-[#0147FF] px-4 py-1 ml-2 mt-4 rounded-lg"
+              onClick={closeModelHandler}
+            >
               Cancel
             </button>
-
-            {/* Xoá phòng chat */}
-            <button className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg" onClick={openModal}>
+            <button
+              className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg"
+              onClick={openModal}
+            >
               <DeleteIcon className="mr-2"></DeleteIcon>
               Delete Chat
             </button>
-            <Modal
-              open={isModalConfirm}
-              onClose={closeModal}
-              aria-labelledby="modal-title"
-              aria-describedby="modal-description"
-            >
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: 300,
-                  bgcolor: "background.paper",
-                  borderRadius: "8px",
-                  boxShadow: 24,
-                  p: 3,
-                }}
-              >
-                <Typography id="modal-title" variant="h6" component="h2">
-                  Confirm Delete
-                </Typography>
-                <Typography id="modal-description" sx={{ mt: 2 }}>
-                  Are you sure you want to delete this chat?
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    gap: 2,
-                    mt: 3,
-                  }}
-                >
-                  <Button variant="outlined" onClick={closeModal}>
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => {
-                      console.log("Deleted");
-                      handleDeleteChat();
-
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </Box>
-              </Box>
-            </Modal>
-
           </div>
         </Box>
       </Modal>
     </div>
   );
+  
 };
 
 export default ChatDetails;
