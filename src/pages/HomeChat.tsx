@@ -126,7 +126,6 @@ const HomeChat: React.FC = () => {
     }
   }
   useEffect(() => {
-
     getRoomsChat();
   }, [roomIdDeleted]);
 

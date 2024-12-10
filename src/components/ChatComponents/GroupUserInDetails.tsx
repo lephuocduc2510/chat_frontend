@@ -24,16 +24,30 @@ export default function GroupUserDetails({ values, add, remove }: UserProps) {
         add(values);
     };
     const [checkMod, setCheckMod] = React.useState(false);
+    const [checkModLogin, setCheckModLogin] = React.useState(false);
     const checkRole = async () => {
-        if (values.role === 'mod') {
+        if (values.role === 'mod' || values.role === 'admin') {
             setCheckMod(true);
+        }
+        else {
+            setCheckMod(false);
         }
     }
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            const role = JSON.parse(atob(token.split('.')[1])).role;
+            if (role === 'mod' || role === 'admin') {
+                setCheckModLogin(true);
+            }
+            else {
+                setCheckModLogin(false);
+            }
+        }
         checkRole();
     }
-        , []);
+        , [values]);
 
     return (
         <motion.div
@@ -58,7 +72,7 @@ export default function GroupUserDetails({ values, add, remove }: UserProps) {
             </div>
             {/* Nút x đỏ */}
 
-            {checkMod ? <></> :
+            {checkMod  || !checkModLogin? <></> :
                 <Popconfirm
                     title="Are you sure you want to delete this user?"
                     onConfirm={() => remove({ id: values.id })} // Gọi hàm remove nếu người dùng xác nhận

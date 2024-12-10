@@ -17,26 +17,26 @@ import { selectChat, updateRoomDeleted } from "../../redux/Chat/chatSlice";
 import AddUserToRoom from "./AddUserToRoom";
 
 const style = {
-  
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    width: window.innerWidth / 3,
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    borderRadius: "14px",
-    p: 4,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",  // Căn giữa nội dung theo chiều ngang
-    flexDirection: "column",
-    outline: "none",
-    maxWidth: "700px", // Giới hạn chiều rộng
-    maxHeight: "850px", // Giới hạn chiều cao để không vượt quá viewport
-    overflowY: "auto",
-    marginTop: "-23%",  // Căn giữa theo chiều dọc
-    marginLeft: "-15%", // Điều chỉnh theo chiều ngang (có thể thay đổi giá trị này)
-  
+
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  width: window.innerWidth / 3,
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  borderRadius: "14px",
+  p: 4,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",  // Căn giữa nội dung theo chiều ngang
+  flexDirection: "column",
+  outline: "none",
+  maxWidth: "700px", // Giới hạn chiều rộng
+  maxHeight: "850px", // Giới hạn chiều cao để không vượt quá viewport
+  overflowY: "auto",
+  marginTop: "-23%",  // Căn giữa theo chiều dọc
+  marginLeft: "-15%", // Điều chỉnh theo chiều ngang (có thể thay đổi giá trị này)
+
 };
 
 interface ChatDetailsProps {
@@ -62,6 +62,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   const [isModalConfirm, setIsModalConfirm] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [isMod, setIsMod] = useState(false);
+  const cookie = localStorage.getItem("token");
+
   const dispatch = useDispatch();
 
   const openModal = () => {
@@ -116,16 +119,29 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
 
 
   React.useEffect(() => {
+    if (cookie !== null) {
+      const role = JSON.parse(atob(cookie.split('.')[1])).role;
+      if (role === 'mod') {
+        setIsMod(true);
+      } else {
+        setIsMod(false);
+      }
+    }
+  }
+    , [chatModel, showAddUser]);
+
+
+  React.useEffect(() => {
     if (idRoom !== null && chatModel === true) {
       getUser();
       dispatch(updateRoomDeleted(idRoom));
     }
   },
-    [chatModel]);
+    [chatModel, showAddUser]);
 
   //////////////////// Get user ///////////////////////
   const getUser = async () => {
-    const cookie = localStorage.getItem("token");
+
     const config = {
       headers: {
         Authorization: `Bearer ${cookie}`,
@@ -176,51 +192,25 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
     }
   };
 
-  //////////////////// Add user ///////////////////////
 
-  const searchHandler = async (value: string) => {
-   
-    const cookie = localStorage.getItem("jwt");
-    const response = await fetch(
-      `${process.env.REACT_APP_API_URL}/api/v1/users?search=${value}`,
-      {
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${cookie}`,
-        },
-      }
-    );
 
- 
-    const data = await response.json();
-    data.users.length = data.users.length > 2 ? (data.users.length = 2) : data.users.length;
-    setResults(data.users);
-    if (data.users.length === 0) setIsEmptyResults(true);
-    else setIsEmptyResults(false);
-  };
-
-  const inputHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTimeout(() => {
-      searchHandler(e.target.value);
-    }, 2000);
-  };
 
   return (
     <div className="absolute max-h-500 overflow-y-auto">
       <Modal open={chatModel} onClose={closeChat} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box       
-        sx={style}>
-          <div className="text-2xl font-Poppins">{roomName}</div>
-          <div className="flex w-[100%]">
+        <Box
+          sx={style}>
+          <div className="text-2xl font-Poppins">Chi tiết phòng</div>
+          <div className="flex w-full justify-center mt-5">
             <input
-              defaultValue={"Chat Name"}
+              defaultValue={roomName}
               disabled
               spellCheck="false"
               placeholder="Chat Name"
-              className="text-lg h-[16%] w-[100%] mt-5 font-thin px-1 py-2 outline-none bg-[#F6F8FC]"
-            ></input>
-            <button className="bg-[#014DFE] text-white text-lg ml-2 px-2 py-1 mt-4 rounded-sm">Change</button>
+              className="text-2xl h-[50px] w-[80%] font-thin px-3 py-2 outline-none bg-[#F6F8FC] text-center rounded-lg shadow-sm"
+            />
           </div>
+
           {/* // User in room */}
           <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-10">
             <label
@@ -253,20 +243,23 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
             <div>
               {!showAddUser ? (
                 // Hiển thị giao diện nút Add User
-                <div
-                  className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2"
-                  onClick={handleAddUserClick}
-                >
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
-                    <FaPlus className="text-blue-500" size={15} />
+                isMod ? (
+                  <div
+                    className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2"
+                    onClick={handleAddUserClick}
+                  >
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
+                      <FaPlus className="text-blue-500" size={15} />
+                    </div>
+                    <span className="ml-2 text-blue-500">Add User</span>
                   </div>
-                  <span className="ml-2 text-blue-500">Add User</span>
-                </div>
+                ) : null
               ) : (
                 // Hiển thị component AddUserToRoom
                 <AddUserToRoom onBack={handleBack} />
               )}
             </div>
+
           </div>
 
           {/* Phần tử "Add User" */}
@@ -291,10 +284,13 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
             </button>
 
             {/* Xoá phòng chat */}
-            <button className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg" onClick={openModal}>
-              <DeleteIcon className="mr-2"></DeleteIcon>
-              Delete Chat
-            </button>
+            {isMod ?
+              (<button className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg" onClick={openModal}>
+
+                <DeleteIcon className="mr-2"></DeleteIcon>
+                Delete Chat
+              </button>) : null
+            }
             <Modal
               open={isModalConfirm}
               onClose={closeModal}
