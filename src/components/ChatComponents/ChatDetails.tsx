@@ -314,12 +314,12 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
                 <AddUserToRoom onBack={handleBack} />
               )}
   
-            <div className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2">
+            {/* <div className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2">
               <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
                 <FaPlus className="text-blue-500" size={15} />
               </div>
               <span className="ml-2 text-blue-500">Add User</span>
-            </div>
+            </div> */}
           </div>
   
           {/* Pinned Messages */}
