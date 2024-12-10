@@ -129,6 +129,7 @@ const HomeChat: React.FC = () => {
       setIsLoading(false);
     }
   }
+  
   useEffect(() => {
     getRoomsChat();
   }, [roomIdDeleted]);

@@ -225,7 +225,7 @@ export default function Users({ }: Props) {
                 </Form>
             </Card>
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36, maxHeight: 500, overflow: "auto"}}>
+            <Card title='List of users' style={{ width: '100%', marginTop: 36, maxHeight: 430, overflow: "auto"}}>
                 <Table dataSource={users} columns={columns} />
             </Card>
 
