@@ -1,11 +1,10 @@
 
-
 import React, { useState } from "react";
 import MicIcon from "@mui/icons-material/Mic";
 import SendIcon from "@mui/icons-material/Send";
-import { IconButton, Box } from "@mui/material";
-import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
+import { IconButton, CircularProgress } from "@mui/material";
 import PhotoIcon from "@mui/icons-material/Photo";
+import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { addMessage } from "../../redux/Chat/chatLatestSlice";
@@ -25,7 +24,7 @@ export default function Type() {
   const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [openPicker, setOpenPicker] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const idRoom = useSelector((state: RootState) => state.chat.selectedChatId);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
 
@@ -36,6 +35,7 @@ export default function Type() {
     }
 
     if (connection) {
+      setIsLoading(true); // Start loading
       try {
         await connection.invoke("SendMessage", content, fileUrl);
         console.log("Message sent:", content, fileUrl);
@@ -50,6 +50,8 @@ export default function Type() {
         dispatch(addMessage(newMessage));
       } catch (err) {
         console.error("Error sending message:", err);
+      } finally {
+        setIsLoading(false); // Stop loading
       }
     }
   };
@@ -60,6 +62,7 @@ export default function Type() {
       formData.append("file", file);
       formData.append("UserId", storedData.id);
 
+      setIsLoading(true); // Start loading
       try {
         const response = await fetch(
           `https://localhost:7001/api/Messages/upload-file/${idRoom}`,
@@ -76,25 +79,15 @@ export default function Type() {
         const result = await response.json();
         const fileUrl = result.fileUrl;
 
-        await sendMessage("", fileUrl); // Gửi file URL
+        await sendMessage("", fileUrl); // Send file URL
         console.log("File uploaded successfully:", fileUrl);
 
-        setFile(null); // Reset trạng thái file
+        setFile(null); // Reset file state
         setPreviewUrl(null);
       } catch (err) {
         console.error("Error uploading file:", err);
-      }
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (message.trim()) {
-        sendMessage(message); // Gửi tin nhắn
-        setMessage(""); // Xoá nội dung
-      } else if (file) {
-        handleFileUpload(); // Upload file
+      } finally {
+        setIsLoading(false); // Stop loading
       }
     }
   };
@@ -107,10 +100,60 @@ export default function Type() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (message.trim()) {
+        sendMessage(message); // Send message
+        setMessage(""); // Clear input
+      } else if (file) {
+        handleFileUpload(); // Upload file
+      }
+    }
+  };
+
+  const removePreview = () => {
+    setFile(null);
+    setPreviewUrl(null);
+  };
+
   if (!idRoom) return <></>;
 
   return (
     <div className="border-[1px] border-[#f5f5f5] bg-[#FFFFFF] h-[12%] flex flex-row justify-center items-center relative">
+      {/* Display image preview */}
+      {previewUrl && (
+        <div
+          style={{
+            position: "absolute",
+            top: "-80px",
+            left: "10px",
+            zIndex: 10,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <img
+            src={previewUrl}
+            alt="Preview"
+            className="w-16 h-16 object-cover rounded-md shadow-md"
+          />
+          <IconButton
+            style={{
+              position: "absolute",
+              top: "-10px",
+              right: "-10px",
+              backgroundColor: "white",
+              border: "1px solid #ccc",
+            }}
+            size="small"
+            onClick={removePreview}
+          >
+            <CloseIcon fontSize="small" color="error" />
+          </IconButton>
+        </div>
+      )}
+
       {/* Microphone Icon */}
       <MicIcon
         sx={{ width: 38, cursor: "pointer" }}
@@ -123,25 +166,8 @@ export default function Type() {
         color="info"
       />
 
-      {/* Emoji Picker */}
-      <Box
-        style={{
-          zIndex: 10,
-          left: "47%",
-          position: "fixed",
-          display: openPicker ? "inline" : "none",
-          bottom: 81,
-        }}
-      >
-        {/* Emoji picker UI */}
-      </Box>
-
-      <IconButton onClick={() => setOpenPicker(!openPicker)}>
-        <InsertEmoticonIcon />
-      </IconButton>
-
       {/* Upload Image Button */}
-      <label htmlFor="file-upload" style={{ position: "absolute", left: "10%" }}>
+      <label htmlFor="file-upload" style={{ position: "absolute", left: "1%" }}>
         <input
           id="file-upload"
           type="file"
@@ -155,26 +181,36 @@ export default function Type() {
       </label>
 
       {/* Send Button */}
-      <SendIcon
-        color={message.trim() || file ? "action" : "disabled"}
-        sx={{ width: 22, cursor: message.trim() || file ? "pointer" : "not-allowed" }}
-        onClick={() => {
-          if (message.trim()) {
-            sendMessage(message);
-            setMessage("");
-          } else if (file) {
-            handleFileUpload();
-          }
-        }}
+      <div
         style={{
           position: "absolute",
           top: "50%",
           left: "95%",
-          translate: "-95% -50%",
+          transform: "translate(-95%, -50%)",
         }}
-      />
+      >
+        {isLoading ? (
+          <CircularProgress size={20} />
+        ) : (
+          <SendIcon
+            color={message.trim() || file ? "action" : "disabled"}
+            sx={{
+              width: 22,
+              cursor: message.trim() || file ? "pointer" : "not-allowed",
+            }}
+            onClick={() => {
+              if (message.trim()) {
+                sendMessage(message);
+                setMessage("");
+              } else if (file) {
+                handleFileUpload();
+              }
+            }}
+          />
+        )}
+      </div>
 
-      {/* Textarea + Preview */}
+      {/* Textarea */}
       <div className="bg-gray-100 resize-none font-Roboto box-border px-[6%] flex text-md w-[85%] py-[5px] outline-none h-[50%] rounded-3xl">
         <textarea
           spellCheck="false"
@@ -184,13 +220,6 @@ export default function Type() {
           onKeyDown={handleKeyDown}
           className="w-full bg-transparent outline-none resize-none"
         />
-        {previewUrl && (
-          <img
-            src={previewUrl}
-            alt="Preview"
-            className="ml-2 w-12 h-12 object-cover rounded-md"
-          />
-        )}
       </div>
     </div>
   );
