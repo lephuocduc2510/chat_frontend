@@ -1,13 +1,13 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import MicIcon from "@mui/icons-material/Mic";
 import SendIcon from "@mui/icons-material/Send";
-import { Box, IconButton } from "@mui/material";
+import { IconButton, Box } from "@mui/material";
 import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 import PhotoIcon from "@mui/icons-material/Photo";
 import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 import { addMessage } from "../../redux/Chat/chatLatestSlice";
 import { useSignalR } from "../../context/SignalRContext";
-import { RootState } from "../../redux/store";
 
 type ChatMessage = {
   userId: string;
@@ -20,76 +20,102 @@ type ChatMessage = {
 export default function Type() {
   const dispatch = useDispatch();
   const { connection } = useSignalR();
-  const [openPicker, setOpenPicker] = useState<boolean>(false);
-  const emojiPickerRef = useRef<HTMLDivElement | null>(null);
-  const roomId = useSelector((state: RootState) => state.chat.selectedChatId);
+  const [message, setMessage] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // for image preview
+  const [openPicker, setOpenPicker] = useState<boolean>(false); // for emoji picker toggle
+  const idRoom = useSelector((state: RootState) => state.chat.selectedChatId);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
-  const [message, setMessage] = useState<string>(""); // Message content
-  const [file, setFile] = useState<File | null>(null); // File for upload
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // Preview URL for image
-  const idRoom = useSelector((state: any) => state.chat.selectedChatId);
 
-  const handleEmojiClick = (emoji: { native: string }) => {
-    setMessage((prevMessage) => prevMessage + emoji.native);
-  };
-
-  // Send message via SignalR
-  const sendMessage = async (message: string, fileHtml: string | null = null) => {
-    if (connection && (message.trim() || fileHtml)) {
+  // Gửi tin nhắn hoặc file qua SignalR
+  const sendMessage = async (content: string, fileUrl: string | null = null) => {
+    if (connection && (content.trim() || fileUrl)) {
       try {
-        await connection.invoke("SendMessage", message, fileHtml);
-        console.log("Message sent: ", message, fileHtml);
-      } catch (err) { 
-        console.error("Error sending message: ", err);
+        await connection.invoke("SendMessage", content, fileUrl);
+        console.log("Message sent:", content, fileUrl);
+      } catch (err) {
+        console.error("Error sending message:", err);
       }
     }
   };
 
-  // Handle message send
   const handleSend = () => {
-    if (!message.trim() && !file) {
-      alert("Please enter a message or upload an image.");
-      return;
-    }
-
     if (message.trim()) {
+      // Gửi tin nhắn văn bản
+      const newMessage: ChatMessage = {
+        content: message,
+        sentAt: new Date().toISOString(),
+        userId: storedData.id,
+        fileUrl: "",
+        roomId: idRoom || "",
+      };
+      dispatch(addMessage(newMessage));
       sendMessage(message);
+      setMessage("");
+    } else if (file) {
+      // Chỉ upload file nếu không có tin nhắn văn bản
+      handleFileUpload();
     }
-
-    const newMessage: ChatMessage = {
-      content: message,
-      sentAt: new Date().toISOString(),
-      userId: storedData.id,
-      fileUrl: previewUrl || "",
-      roomId: roomId || "",
-    };
-
-    dispatch(addMessage(newMessage));
-    setMessage(""); // Reset input
-    setFile(null); // Reset file
-    setPreviewUrl(null); // Reset preview
   };
 
-  // Handle file change
+  // Upload file
+  const handleFileUpload = async () => {
+    if (file && idRoom) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("UserId", storedData.id);
+
+      try {
+        const response = await fetch(`https://localhost:7001/api/Messages/upload-file/${idRoom}`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("File upload failed");
+        }
+
+        const result = await response.json();
+        const fileUrl = result.fileUrl;
+        sendMessage("", fileUrl);
+
+        const newMessage: ChatMessage = {
+          content: "",
+          sentAt: new Date().toISOString(),
+          userId: storedData.id,
+          fileUrl,
+          roomId: idRoom || "",
+        };
+
+        dispatch(addMessage(newMessage));
+        console.log("File uploaded successfully:", fileUrl);
+        setFile(null);
+      } catch (err) {
+        console.error("Error uploading file:", err);
+      }
+    }
+  };
+
+  // Xử lý thay đổi file
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files ? event.target.files[0] : null;
-    setFile(selectedFile);
-
-    // Generate preview URL
     if (selectedFile) {
-      const fileUrl = URL.createObjectURL(selectedFile);
-      setPreviewUrl(fileUrl);
+      setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile)); // Preview the selected image
     }
   };
 
-  // Handle Enter key for sending
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
+
   if (idRoom === null || idRoom === '') return <></>;
+
   return (
     <div className="border-[1px] border-[#f5f5f5] bg-[#FFFFFF] h-[12%] flex flex-row justify-center items-center relative">
       {/* Microphone Icon */}
@@ -116,7 +142,7 @@ export default function Type() {
           bottom: 81,
         }}
       >
-        {/* Emoji picker */}
+        {/* Emoji picker UI here */}
       </Box>
 
       <IconButton onClick={() => setOpenPicker(!openPicker)}>
