@@ -8,7 +8,7 @@ import { axiosClient } from "../../libraries/axiosClient";
 import 'antd/dist/reset.css';
 import { useRoomContext } from "../../context/RoomContext";
 import { useAppDispatch } from "../../redux/User/hook";
-import { setIsCreatingRoomm } from "../../redux/Chat/chatSlice";
+import { selectChat, setIsCreatingRoomm, updateRoomDeleted } from "../../redux/Chat/chatSlice";
 
 
 interface User {
@@ -108,7 +108,6 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     if (idRoom) {
       addUsersToRoom();
       //reset input and groupUsers
-      setGroupUsers([]);
       setFormData({ roomName: "", friends: [], description: "", });
 
     }
@@ -118,7 +117,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
 
   const HandleCreateRoom = async () => {
     // setIsCreatingRoom(true);
-    // dispatch(setIsCreatingRoomm(true));
+  
     const token = localStorage.getItem("token");
     const createdBy = idUser;
     const config = {
@@ -137,6 +136,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
       handleClose();
       setCheckSent(false);
       // setIsCreatingRoom(false);
+      
     }
     else {
       // setIsCreatingRoom(false);
@@ -164,6 +164,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     const response= await axiosClient.post("/api/Rooms-User/add-user-in-room", data, config);
     if (response.status === 200) {
       console.log("Add user to room successfully");
+      dispatch(updateRoomDeleted(idRoom));
     }
 
    

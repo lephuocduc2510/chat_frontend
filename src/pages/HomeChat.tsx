@@ -33,9 +33,13 @@ interface User {
 }
 
 interface Chat {
+ 
   idRooms: string;
   roomName: string;
-  latestMessage?: { content: string };
+  namePerMessLast: string;
+  idPerMessLast: string;
+  lastMessageContent: string ;
+   lastMessageSentAt: string
   createdDate: string;
   notify?: boolean;
   isActive: boolean;
@@ -126,7 +130,6 @@ const HomeChat: React.FC = () => {
     }
   }
   useEffect(() => {
-
     getRoomsChat();
   }, [roomIdDeleted]);
 
@@ -156,7 +159,7 @@ const HomeChat: React.FC = () => {
               >
                 <ChatBar select={(value) => {
                   console.log(value);
-                  console.log(value.latestMessage);
+                  console.log(value.lastMessageContent);
                   setRoomSelected(value._id);
                 }} data={data} />
               </motion.div>

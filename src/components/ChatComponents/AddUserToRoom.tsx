@@ -25,11 +25,13 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
     const [username, setUsername] = useState("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [users, setUsers] = useState<User[]>([]);
+    const [roomUser, setRoomUser] = useState<User[]>([]);
     const [groupUsers, setGroupUsers] = useState<User[]>([]);
     const [searchTerm, setSearchTerm] = useState(""); // Từ khóa tìm kiếm
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]); // Người dùng đã lọc
     const [checkEmpty, setCheckEmpty] = useState(false);
     const idRoom = useSelector((state: any) => state.chat.selectedChatId);
+
 
     const [formData, setFormData] = useState<FormData>({
         roomName: "",
@@ -49,14 +51,41 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
         };
         const response = await axiosClient.get("/api/user", config);
         if (response.status === 200) {
-            setUsers(response.data.result);
+            // Loại bỏ những người dùng đã trong phòng khỏi danh sách users
+            const filteredUsers = response.data.result.filter(
+                (user: User) => !roomUser.some((roomUser) => roomUser.id === user.id)
+            );
+            setUsers(filteredUsers);
+
         }
         setIsLoading(false);
     }
 
+    const getUserInRoom = async () => {
+        const token = localStorage.getItem("token");
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        };
+        const response = await axiosClient.get(`/api/Rooms-User/${idRoom}`, config);
+        if (response.status === 200) {
+            setRoomUser(response.data.result);
+        }
+
+    }
+
+
     React.useEffect(() => {
-        getUser();
-    }, []);
+
+        const fetchData = async () => {
+            await getUserInRoom();
+            await getUser();
+        };
+        fetchData();
+
+
+    }, [idRoom]);
 
     // Hàm tìm kiếm người dùng
     const handleSearch = () => {
@@ -88,26 +117,26 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
         setGroupUsers((prev) => [...prev, user]);
         // cập nhật users bỏ người dùng đã thêm vào nhóm
         setUsers((prev) => prev.filter((u) => u.id !== user.id));
-        
+
         // setSearchTerm(""); // Xóa input tìm kiếm sau khi thêm
     };
 
     // Hàm xóa người dùng khỏi nhóm
     const removeUserFromGroup = (userId: string) => {
         const removedUser = groupUsers.find((user) => user.id === userId);
-    if (removedUser) {
-        setGroupUsers((prev) => prev.filter((user) => user.id !== userId));
-        // Thêm lại người dùng vào danh sách users
-        setUsers((prev) => [...prev, removedUser]);
+        if (removedUser) {
+            setGroupUsers((prev) => prev.filter((user) => user.id !== userId));
+            // Thêm lại người dùng vào danh sách users
+            setUsers((prev) => [...prev, removedUser]);
 
-        // Nếu đang tìm kiếm, cập nhật lại danh sách filteredUsers
-        if (searchTerm) {
-            const result = [...users, removedUser].filter((user) =>
-                user.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setFilteredUsers(result);
+            // Nếu đang tìm kiếm, cập nhật lại danh sách filteredUsers
+            if (searchTerm) {
+                const result = [...users, removedUser].filter((user) =>
+                    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                setFilteredUsers(result);
+            }
         }
-    }
     };
 
     // Thêm người dùng vào nhóm
@@ -188,25 +217,34 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
                             className="max-h-20 overflow-y-auto"
                             style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 #f8fafc" }}
                         >
-                            {filteredUsers.map((user) => (
-                                <div key={user.id} className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center">
-                                        <img
-                                            src={user.imageUrl}
-                                            alt={user.name}
-                                            className="w-8 h-8 rounded-full mr-2"
-                                        />
-                                        <div>
-                                            <span className="text-sm font-medium">{user.name}</span>
-                                            <br />
-                                            <span className="text-xs text-gray-500">{user.userName}</span>
+                            {filteredUsers.map((user) => {
+                                // Kiểm tra nếu user đã có trong roomUser
+                                const isUserInRoom = roomUser.some((roomUser) => roomUser.id === user.id);
+
+                                return (
+                                    <div key={user.id} className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center">
+                                            <img
+                                                src={user.imageUrl}
+                                                alt={user.name}
+                                                className="w-8 h-8 rounded-full mr-2"
+                                            />
+                                            <div>
+                                                <span className="text-sm font-medium">{user.name}</span>
+                                                <br />
+                                                <span className="text-xs text-gray-500">{user.userName}</span>
+                                            </div>
                                         </div>
+                                        <Button
+                                            onClick={() => addUserToGroup(user)}
+                                            variant="outlined"
+                                            disabled={isUserInRoom} // Vô hiệu hóa nút nếu user đã có trong roomUser
+                                        >
+                                            {isUserInRoom ? "Already in Room" : "Add"}
+                                        </Button>
                                     </div>
-                                    <Button onClick={() => addUserToGroup(user)} variant="outlined">
-                                        Add
-                                    </Button>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="text-gray-500 text-sm"></div>

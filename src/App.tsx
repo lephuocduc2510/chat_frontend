@@ -95,13 +95,11 @@ const router = createBrowserRouter([
 
       {
         path: "rooms",
-        element: <Rooms></Rooms>,
-        children: [
-          {
-            path: ":id",
-            element: <RoomsUser></RoomsUser>
-          }
-        ]
+        element: <Rooms></Rooms>,     
+      },
+      {
+        path: "rooms/:id",
+        element: <RoomsUser></RoomsUser>
       }
     ]
   },

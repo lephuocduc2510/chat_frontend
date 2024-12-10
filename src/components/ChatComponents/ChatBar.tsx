@@ -8,6 +8,8 @@ import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { useSignalR } from '../../context/SignalRContext';
 import { message } from 'antd';
 import { addMessage } from '../../redux/Chat/chatLatestSlice';
+import { FaImage } from 'react-icons/fa';
+import { axiosClient } from '../../libraries/axiosClient';
 
 interface MessageData {
   content: string;
@@ -15,14 +17,18 @@ interface MessageData {
   sentAt: string;
   fileUrl?: string;
   roomId: string;
+  name: string;
 }
 
 // Định nghĩa kiểu cho props
 interface ChatBarProps {
   data: {
+    namePerMessLast: string
+    idPerMessLast: string;
     idRooms: string;
     roomName: string;
-    latestMessage?: { content: string };
+    lastMessageContent: string;
+    lastMessageSentAt: string
     createdDate: string;
     isActive: boolean;
     notify?: boolean;
@@ -37,20 +43,24 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   const selectedChatId = useSelector((state: RootState) => state.chat.selectedChatId);
   const room = useSelector((state: RootState) => state.rooms.rooms);
   const groupName = data.roomName || 'Group Chat'; // Tên nhóm mặc định
-  const isExcedding = data.latestMessage && data.latestMessage.content.length > 35;
   const groupImg = data.groupLogo; // Lấy ảnh đại diện của nhóm hoặc người dùng đầu tiên
   const chat = useSelector((state: RootState) => selectedChatId ? state.chatLatest[data.idRooms] : null);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
-  const userId = storedData.id; 
+  const userId = storedData.id;
   const { connection } = useSignalR();
-  const checkMessage = useSelector((state: RootState) => state.chat.messages);  
-  const [isJoined, setIsJoined] = useState(false); 
-  const [users, setUsers] = useState<string[]>([]); 
-  const [chatLatest, setChatLatest] = useState<MessageData | null>(null); 
-  const [time, setTime] = useState<string>("");
-  const dateObject = new Date(time); 
- 
-   // Giả sử lấy content từ phần tử cuối cùng
+  const checkMessage = useSelector((state: RootState) => state.chat.messages);
+  const [isJoined, setIsJoined] = useState(false);
+  const [users, setUsers] = useState<string[]>([]);
+  const [chatLatest, setChatLatest] = useState<MessageData>({ content: data.lastMessageContent, userId: data.idPerMessLast, name: data.namePerMessLast , sentAt: data.lastMessageSentAt, roomId: data.idRooms });
+  const [time, setTime] = useState<string>(data.lastMessageSentAt);
+  const dateObject = new Date(time);
+  const token = localStorage.getItem("token");
+  
+
+
+
+
+  // Giả sử lấy content từ phần tử cuối cùng
   const handleSelect = async () => {
     dispatch(selectChat(data.idRooms));
     dispatch(updateNameRoom(data.roomName));
@@ -63,7 +73,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
         connection.on("ReceiveMessage", (messageData) => {
           // setMessages((prevMessages) => [...prevMessages, messageData]);
           // setMessages(checkMessage)
-        
+
           dispatch(updateChat(messageData));
           const newMessage = {
             content: messageData.content,
@@ -71,8 +81,10 @@ export default function ChatBar({ data, select }: ChatBarProps) {
             sentAt: messageData.sentAt,
             fileUrl: messageData.fileUrl,
             roomId: messageData.roomId,
+            name: messageData.name,
           };
-          dispatch(addMessage(newMessage));      
+          dispatch(addMessage(newMessage));
+          console.log("Message received globally: ", messageData);
         });
         connection.on("UsersInRoom", (usersInRoom) => {
           setUsers(usersInRoom);
@@ -89,7 +101,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
 
   // Connect to SignalR
 
- 
+
   useEffect(() => {
     if (connection) {
       connection.start()
@@ -105,8 +117,8 @@ export default function ChatBar({ data, select }: ChatBarProps) {
       setTime(chat.sentAt); // Lấy thời gian từ chat
     }
   }, [chat]);
-  
-  
+
+
 
   return (
     <div
@@ -126,9 +138,40 @@ export default function ChatBar({ data, select }: ChatBarProps) {
         <div className="flex flex-col ml-2">
           <div className="font-bold font-Roboto text-sm">{groupName}</div>
           <div className="text-xs text-[#979797]">
+
+            {userId !== chatLatest.userId ? (
+              chatLatest?.content && !chatLatest.content.includes('<a href="') ? (
+                <span>
+                  {chatLatest.name}: {chatLatest.content}
+                </span>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span>{chatLatest.name}:</span>
+                  <span className="font-bold text-sm text-blue-500 flex items-center">
+                    <FaImage className="text-xl" />
+                  </span>
+                </div>
+              )
+            ) : (
+              chatLatest?.content && !chatLatest.content.includes('<a href="') ? (
+                <span>
+                  Bạn: {chatLatest.content}
+                </span>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span>Bạn:</span>
+                  <span className="font-bold text-sm text-blue-500 flex items-center">
+                    <FaImage className="text-xl" />
+                  </span>
+                </div>
+              )
+            )}
+
            {chatLatest?.content} 
             {isExcedding ? '.....' : ''}
           </div>
+
+
         </div>
       </div>
       <div className="flex flex-col items-end">

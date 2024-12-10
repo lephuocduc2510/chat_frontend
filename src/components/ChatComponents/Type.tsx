@@ -15,6 +15,13 @@ type ChatMessage = {
   content: string;
   fileUrl: string;
   sentAt: string;
+  roomId: string; 
+  name: string// Phòng nào
+};
+
+
+interface FileUploadProps {
+  userId: string;
   roomId: string;
 };
 
@@ -62,6 +69,23 @@ export default function Type() {
       formData.append("file", file);
       formData.append("UserId", storedData.id);
 
+
+  // Xử lý gửi tin nhắn
+  const handleSend = () => {
+    if (message.trim()) {
+      sendMessage(message);
+      const newMessage: ChatMessage = {
+        content: message,
+        sentAt: new Date().toISOString(),
+        userId: storedData.id,
+        fileUrl: "",
+        roomId: roomId || "",
+        name: ""
+      };
+      console.log("new Message: ", newMessage);
+      dispatch(addMessage(newMessage))
+      console.log("Updated Redux State: ", store.getState().chatLatest);
+      setMessage(""); // Xóa nội dung input sau khi gửi
       setIsLoading(true); // Start loading
       try {
         const response = await fetch(

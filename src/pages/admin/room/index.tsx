@@ -5,6 +5,7 @@ import Password from 'antd/es/input/Password';
 import { axiosClient } from '../../../libraries/axiosClient';
 import TextArea from 'antd/es/input/TextArea';
 import { useNavigate } from 'react-router-dom';
+import { render } from '@testing-library/react';
 
 
 type Props = {};
@@ -116,6 +117,9 @@ export default function Rooms({ }: Props) {
             dataIndex: 'id', // Không bắt buộc nếu chỉ hiển thị số thứ tự
             key: 'id',
             width: '1%',
+            render: (text: any, record: any, index: number) => {
+                return index + 1;
+            }
 
         },
         {
@@ -191,7 +195,7 @@ export default function Rooms({ }: Props) {
                                 navigate(`/admin/rooms/${record.idRooms}`);
                             }}
                         />
-                    </Space>
+                    </Space>    
 
                 );
             },
@@ -242,7 +246,7 @@ export default function Rooms({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 }}>
+            <Card title='List of users' style={{ width: '100%', marginTop: 36, maxHeight: 450, overflow: "auto" }}>
                 <Table dataSource={rooms} columns={columns} />
             </Card>
 

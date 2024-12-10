@@ -217,6 +217,13 @@ export default function RoomsUser({ }: Props) {
             key: 'phoneNumber',
             width: '20%',
         },
+
+        {
+            title: 'Role',
+            dataIndex: 'role',
+            key: 'role',
+            width: '20%',
+        },
         // {
         //     title: 'Created Date',
         //     dataIndex: 'createdDate',
@@ -244,7 +251,8 @@ export default function RoomsUser({ }: Props) {
                             title="Delete the user"
                             description="Are you sure to delete this user from room?"
                             onConfirm={() => {
-                                onDelete(record.id);
+                                console.log('Selected User:', record);
+                                onDelete([record.id]);
                             }}
                         >
                             <Button type="primary" danger icon={<DeleteOutlined />} />
