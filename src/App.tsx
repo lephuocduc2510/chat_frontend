@@ -100,6 +100,10 @@ const router = createBrowserRouter([
       {
         path: "rooms/:id",
         element: <RoomsUser></RoomsUser>
+      },
+      {
+        path: "settings",
+        element: <Settings></Settings>
       }
     ]
   },

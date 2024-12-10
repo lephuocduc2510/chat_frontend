@@ -249,7 +249,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
 
 
           {/* // User in room */}
-          <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-10">
+         
 
           {/* List users in room */}
            <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-6"> {/* Giảm margin-top từ 10 xuống 6 */} 
@@ -317,7 +317,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
               </div>
               <span className="ml-2 text-blue-500">Add User</span>
             </div> */}
-          </div>
+     
   
           {/* Pinned Messages */}
           <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-4"> {/* Giảm margin-top từ 10 xuống 4 */}
