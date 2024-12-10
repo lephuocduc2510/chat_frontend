@@ -14,22 +14,30 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { motion } from 'framer-motion';
 import { PersonAdd } from "@mui/icons-material";
 import { selectChat, updateRoomDeleted } from "../../redux/Chat/chatSlice";
+import AddUserToRoom from "./AddUserToRoom";
 import PinnedMessages from "./PinMessages";
 
 const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: window.innerWidth / 3,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  borderRadius: "14px",
-  p: 4,
-  display: "flex",
-  alignItems: "center",
-  flexDirection: "column",
-  outline: "none",
+  
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: window.innerWidth / 3,
+    bgcolor: "background.paper",
+    boxShadow: 24,
+    borderRadius: "14px",
+    p: 4,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",  // Căn giữa nội dung theo chiều ngang
+    flexDirection: "column",
+    outline: "none",
+    maxWidth: "700px", // Giới hạn chiều rộng
+    maxHeight: "850px", // Giới hạn chiều cao để không vượt quá viewport
+    overflowY: "auto",
+    marginTop: "-23%",  // Căn giữa theo chiều dọc
+    marginLeft: "-15%", // Điều chỉnh theo chiều ngang (có thể thay đổi giá trị này)
+  
 };
 
 interface ChatDetailsProps {
@@ -48,12 +56,13 @@ interface User {
 const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   const [Results, setResults] = useState<any[]>([]);
   const [isEmptyResults, setIsEmptyResults] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [users, setUsers] = React.useState<User[]>([]);
   const [groupUsers, setGroupUsers] = React.useState<User[]>([]);
   const idRoom = useSelector((state: RootState) => state.chat.selectedChatId);
+  const roomName = useSelector((state: RootState) => state.chat.nameRoom);
   const [isModalConfirm, setIsModalConfirm] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
+  const [showAddUser, setShowAddUser] = useState(false);
   const [pinnedMessages, setPinnedMessages] = React.useState<PinnedMessage[]>([]);
   const [isPinnedDropdownOpen, setIsPinnedDropdownOpen] = React.useState<boolean>(true);
 
@@ -75,6 +84,16 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
       imageUrl: string;
     };
   }
+
+  // Hàm hiển thị component AddUserToRoom
+  const handleAddUserClick = () => {
+    setShowAddUser(true);
+  };
+
+  // Hàm quay lại giao diện trước
+  const handleBack = () => {
+    setShowAddUser(false);
+  };
 
 
   const notify = (errorname: string, value?: string) => {
@@ -198,7 +217,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   //////////////////// Add user ///////////////////////
 
   const searchHandler = async (value: string) => {
-    setIsLoading(true);
+   
     const cookie = localStorage.getItem("jwt");
     const response = await fetch(
       `${process.env.REACT_APP_API_URL}/api/v1/users?search=${value}`,
@@ -210,7 +229,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
       }
     );
 
-    setIsLoading(false);
+ 
     const data = await response.json();
     data.users.length = data.users.length > 2 ? (data.users.length = 2) : data.users.length;
     setResults(data.users);
@@ -225,10 +244,11 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   };
 
   return (
-    <div className="absolute">
+    <div className="absolute max-h-500 overflow-y-auto">
       <Modal open={chatModel} onClose={closeChat} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
-          <div className="text-2xl font-Poppins">Room Setting</div>
+        <Box       
+        sx={style}>
+          <div className="text-2xl font-Poppins">{roomName}</div>
           <div className="flex w-[100%]">
             <input
               defaultValue={"Chat Name"}
@@ -275,13 +295,31 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
                 )}
               </div>
             )}
+            </div>
+
+            <div>
+              {!showAddUser ? (
+                // Hiển thị giao diện nút Add User
+                <div
+                  className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2"
+                  onClick={handleAddUserClick}
+                >
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
+                    <FaPlus className="text-blue-500" size={15} />
+                  </div>
+                  <span className="ml-2 text-blue-500">Add User</span>
+                </div>
+              ) : (
+                // Hiển thị component AddUserToRoom
+                <AddUserToRoom onBack={handleBack} />
+              )}
   
-            <div className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2">
+            {/* <div className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2">
               <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
                 <FaPlus className="text-blue-500" size={15} />
               </div>
               <span className="ml-2 text-blue-500">Add User</span>
-            </div>
+            </div> */}
           </div>
   
           {/* Pinned Messages */}
