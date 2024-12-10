@@ -6,6 +6,7 @@ type ChatMessage = {
   fileUrl: string;
   sentAt: string;
   roomId: string; // Phòng nào
+  name: string
 };
 
 interface ChatLatestState {

@@ -17,7 +17,8 @@ type ChatMessage = {
   content: string;
   fileUrl: string;
   sentAt: string;
-  roomId: string; // Phòng nào
+  roomId: string; 
+  name: string// Phòng nào
 };
 
 
@@ -71,7 +72,8 @@ export default function Type() {
         sentAt: new Date().toISOString(),
         userId: storedData.id,
         fileUrl: "",
-        roomId: roomId || ""
+        roomId: roomId || "",
+        name: ""
       };
       console.log("new Message: ", newMessage);
       dispatch(addMessage(newMessage))
