@@ -214,7 +214,7 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
                     {isLoading ? <CircularLoading /> : null}
                     {filteredUsers.length && searchTerm !== "" ? (
                         <div
-                            className="max-h-20 overflow-y-auto"
+                            className="max-h-30 overflow-y-auto"
                             style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 #f8fafc" }}
                         >
                             {filteredUsers.map((user) => {
@@ -257,7 +257,7 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
             <div className="my-10">
                 {groupUsers.length > 0 ? (
                     <div
-                        className="max-h-20 overflow-y-auto"
+                        className="max-h-30 overflow-y-auto"
                         style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 #f8fafc" }}
                     >
                         {groupUsers.map((user) => (

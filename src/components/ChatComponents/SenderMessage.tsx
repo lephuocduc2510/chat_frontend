@@ -16,7 +16,7 @@ export default function SenderMessage({ time, content, isPinned, fileUrl }: Send
   return (
     <div className="max-w-[60%] ml-auto h-auto">
       <div className="flex flex-row relative justify-end my-1 max-w-[100%] h-auto">
-        <div className="bg-[#014DFE] max-w-[100%] relative rounded-tl-lg rounded-tr-lg rounded-bl-lg font-Roboto rounded-br-lg text-white box-border px-2 pt-2 pb-2 flex flex-col items-end max-[900px]:text-sm flex justify-between">
+        <div className="bg-[#014DFE] max-w-[100%] relative rounded-tl-lg rounded-tr-lg rounded-bl-lg font-Roboto rounded-br-lg text-white box-border px-2 pt-2 pb-2 flex flex-col items-end max-[900px]:text-sm flex justify-between pe-8">
           <p
             className="w-[100%] min-w-[50px] pb-2"
             style={{ wordWrap: "break-word", whiteSpace: "pre-wrap" }}
@@ -33,7 +33,7 @@ export default function SenderMessage({ time, content, isPinned, fileUrl }: Send
 
           {/* Biểu tượng ghim */}
           {isPinned && (
-            <BsPinAngleFill className="absolute top-2 right-2 text-yellow-400" size={16} />
+            <BsPinAngleFill className="absolute top-2 right-4 text-yellow-400" size={16} />
           )}
 
           <p className="absolute bottom-[3px] right-2 text-[9px] pl-2 flex items-end font-medium">

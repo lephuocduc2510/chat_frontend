@@ -167,8 +167,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
               )
             )}
 
-           {chatLatest?.content} 
-            {isExcedding ? '.....' : ''}
+         
           </div>
 
 

@@ -15,6 +15,7 @@ type FieldType = {
     emailConfirmed: boolean;
     created_at: string;
     updated_at: string;
+    password: string;
 };
 
 
@@ -222,7 +223,7 @@ export default function Users({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 }}>
+            <Card title='List of users' style={{ width: '100%', marginTop: 36, maxHeight: 500, overflow: "auto" }}>
                 <Table dataSource={users} columns={columns} />
             </Card>
 

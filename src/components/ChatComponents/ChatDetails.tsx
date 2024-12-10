@@ -252,7 +252,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
           <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-10">
 
           {/* List users in room */}
-<!--            <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-6"> {/* Giảm margin-top từ 10 xuống 6 */} --> -->
+           <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-6"> {/* Giảm margin-top từ 10 xuống 6 */} 
 
             <label
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -423,13 +423,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
             </Modal>
 
 
-<!--             <button
-              className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg"
-              onClick={openModal}
-            >
-              <DeleteIcon className="mr-2"></DeleteIcon>
-              Delete Chat
-            </button> -->
+          
 
           </div>
         </Box>

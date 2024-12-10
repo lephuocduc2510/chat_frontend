@@ -51,7 +51,7 @@ export default function RecieverMessage({
           </p>
 
           {/* Tin nhắn */}
-          <div className="bg-[#0284C7] relative rounded-tl-lg rounded-tr-lg rounded-bl-lg font-Roboto rounded-br-lg text-white px-3 py-1 shadow-md flex flex-col gap-1">
+          <div className="bg-[#0284C7] pe-8 relative rounded-tl-lg rounded-tr-lg rounded-bl-lg font-Roboto rounded-br-lg text-white px-3 py-1 shadow-md flex flex-col gap-1">
             {/* Nội dung tin nhắn */}
             <p className="w-full min-w-[50px] mt-1" style={{ wordWrap: "break-word" }} dangerouslySetInnerHTML={{ __html: content }} />
 
