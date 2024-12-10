@@ -3,8 +3,8 @@ import Profile from "../components/SettingsComponents/Profile";
 import InputName from "../components/SettingsComponents/InputName";
 import InputEmail from "../components/SettingsComponents/InputEmail";
 import InfoIcon from '@mui/icons-material/Info';
-import { notification } from "antd";
-import axios from "axios";
+import { Button, Form, Input, Modal, notification } from "antd";
+import axios, { AxiosError } from "axios";
 import { axiosClient } from "../libraries/axiosClient";
 import InputPhone from "../components/SettingsComponents/InputPhone";
 import { click } from "@testing-library/user-event/dist/click";
@@ -13,6 +13,7 @@ import { setUserInfo } from "../redux/User/userSlice";
 import { RootState } from "../redux/store";
 
 export default function Settings() {
+  const [form] = Form.useForm(); // Tạo form instance
   const dispatch = useDispatch();
   const reduxData = useSelector((state: RootState) => state.user.userInfo);
   const storedData = JSON.parse(localStorage.getItem('info') || '{}');
@@ -21,6 +22,10 @@ export default function Settings() {
   const [phoneNumber, setPhoneNumber] = useState(storedData.phoneNumber);
   const [clicked, setClicked] = useState(false);
   const isFirstRender = useRef(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+
+
 
 
   useEffect(() => {
@@ -30,7 +35,47 @@ export default function Settings() {
     }
   }, [reduxData]); // Chỉ chạy khi reduxData thay đổi
 
-  
+
+
+  //Submit change password
+  const handleSubmit = async (values: any) => {
+    console.log(values);
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+       "Content-Type": "application/json",
+      },
+    };
+    try {
+      const response = await axiosClient.post("/api/auth/change-password", values, config);
+    
+      if (response.status === 200) {
+        notification.success({
+          message: "Password Changed",
+          description: "Your password has been successfully updated.",
+          duration: 2,
+          placement: "top",
+        });
+        setIsModalOpen(false);
+        // xoá hết các trường trong form
+        form.resetFields();
+
+
+      }
+    } catch (error) {
+      console.error(error);  
+      // Lấy thông báo lỗi từ API nếu có   
+      notification.error({
+        message: "Change password Failed",
+        description: "Your Password Is Incorrect ",  // Hiển thị lỗi lấy từ API hoặc lỗi mặc định
+        duration: 3,
+        placement: "topRight",
+      });
+    }
+
+  }
+
 
   const updateHandler = () => {
     setClicked(true);
@@ -114,8 +159,102 @@ export default function Settings() {
           >
             Update
           </div>
-          <div className="bg-[#C6CED1] text-black font-medium cursor-pointer px-4 py-2 text-sm rounded-md">
-            Reset
+          <div className="flex flex-col items-center">
+            {/* Trigger Button */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-blue-500 text-white font-medium px-4 py-2 rounded-md shadow hover:bg-blue-600"
+            >
+              Change Password
+            </button>
+
+            {/* Modal */}
+            <Modal
+              title={
+                <h2 className="text-lg font-semibold text-blue-600 text-center">
+                  Change Password
+                </h2>
+              }
+
+              open={isModalOpen}
+              onCancel={() => setIsModalOpen(false)}
+              footer={null}
+              bodyStyle={{ padding: "20px" }}
+              style={{
+                top: 50,
+              }}
+            >
+              <Form
+              form = {form}
+                layout="vertical"
+                onFinish={handleSubmit}
+                className="space-y-4"
+              >
+                <Form.Item
+                  label="Current Password"
+                  name="currentPassword"
+                  rules={[
+                    { required: true, message: "Please enter your current password!" },
+                  ]}
+                >
+                  <Input.Password placeholder="Enter current password" />
+                </Form.Item>
+                <Form.Item
+                  name="newPassword"
+                  label="New Password"
+                  rules={[
+                    { required: true, message: 'Please enter your password!' },
+                    {
+                      validator: (_, value) => {
+                        if (!value) {
+                          return Promise.reject(new Error());
+                        }
+                        // Điều kiện mật khẩu: ít nhất 1 chữ cái in hoa, 1 số, 1 ký tự đặc biệt
+                        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+                        if (!passwordRegex.test(value)) {
+                          return Promise.reject(
+                            new Error(
+                              'Password must be at least 8 characters and include an uppercase letter, a number, and a special character.'
+                            )
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <Input.Password placeholder="Enter your password" />
+                </Form.Item>
+
+                <Form.Item
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  dependencies={['password']}
+                  hasFeedback
+                  rules={[
+                    { required: true, message: 'Please confirm your password!' },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue('newPassword') === value) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(new Error('Passwords do not match!'));
+                      },
+                    }),
+                  ]}
+                >
+                  <Input.Password placeholder="Confirm your password" />
+                </Form.Item>
+
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                >
+                  Submit
+                </Button>
+              </Form>
+            </Modal>
           </div>
         </div>
       </div>
