@@ -1,7 +1,9 @@
+
+
 import React from "react";
 import { Avatar } from "@mui/material";
 import Tooltip from "@mui/material/Tooltip";
-import { BsPinAngleFill } from "react-icons/bs"; // Biểu tượng ghim từ react-icons
+import { BsPinAngleFill } from "react-icons/bs";
 
 // Định nghĩa kiểu dữ liệu cho props
 interface RecieverMessageProps {
@@ -11,6 +13,7 @@ interface RecieverMessageProps {
   name: string; // Tên người nhận tin nhắn
   time: string; // Thời gian tin nhắn
   isPinned: boolean; // Kiểm tra tin nhắn đã được ghim hay chưa
+  fileUrl?: string; // URL file đính kèm (nếu có)
 }
 
 export default function RecieverMessage({
@@ -19,9 +22,11 @@ export default function RecieverMessage({
   index,
   name,
   time,
-  isPinned
+  isPinned,
+  fileUrl
 }: RecieverMessageProps) {
   const messageTime = new Date(time);
+
   return (
     <div className="max-w-[60%]">
       <div className="flex flex-row items-start my-2 gap-3">
@@ -48,9 +53,16 @@ export default function RecieverMessage({
           {/* Tin nhắn */}
           <div className="bg-[#0284C7] relative rounded-tl-lg rounded-tr-lg rounded-bl-lg font-Roboto rounded-br-lg text-white px-3 py-1 shadow-md flex flex-col gap-1">
             {/* Nội dung tin nhắn */}
-            <p className="w-full min-w-[50px] mt-1" style={{ wordWrap: "break-word" }}>
-              {content}
-            </p>
+            <p className="w-full min-w-[50px] mt-1" style={{ wordWrap: "break-word" }} dangerouslySetInnerHTML={{ __html: content }} />
+
+            {/* Hiển thị file nếu có */}
+            {fileUrl && (
+              <div>
+                <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                  [File]
+                </a>
+              </div>
+            )}
 
             {/* Biểu tượng ghim */}
             {isPinned && (
