@@ -9,7 +9,8 @@ import EmptyMessages from "./EmptyMessages";
 import { format } from 'date-fns';
 import { isToday, isYesterday } from 'date-fns';
 import { selectChat, updateChat } from "../../redux/Chat/chatSlice";
-
+import { FaThumbtack, FaTrash } from 'react-icons/fa';
+import { FaThumbtackSlash } from "react-icons/fa6";
 // Định nghĩa kiểu Message
 interface Message {
   messageId: number;
@@ -47,13 +48,12 @@ export default function ChatMessages() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [hoveredMessageId, setHoveredMessageId] = useState<number | null>(null);
-
+  const [activeMessageId, setActiveMessageId] = useState<number | null>(null);
   const scrollToBottom = () => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   };
-  const [activeMessageId, setActiveMessageId] = useState<number | null>(null);
 
   const handleMouseEnter = (messageId: number) => {
     setHoveredMessageId(messageId);
@@ -82,10 +82,7 @@ export default function ChatMessages() {
         if (isNearBottom()) {
           setShouldScroll(true);
           setShowNewMessageAlert(false);
-          setShouldScroll(true);
-          setShowNewMessageAlert(false);
         } else {
-          setShowNewMessageAlert(true);
           setShowNewMessageAlert(true);
         }
       }
@@ -146,7 +143,23 @@ export default function ChatMessages() {
       console.error(error);
     }
   };
-
+  // pin message
+  const pinMessage = async (messageId: number) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      };
+      // Gọi API pin với messageId
+      const response = await axiosClient.put(`/api/Messages/pin/${messageId}`, {}, config);
+      if (response.status === 200) {
+        console.log(`Tin nhắn ${messageId} đã được ghim`);
+      }
+    } catch (error) {
+      console.error("Lỗi khi ghim tin nhắn:", error);
+    }
+  };
   const isValidDate = (date: string) => !isNaN(new Date(date).getTime());
 
   const formatDateHeader = (date: string): string => {
@@ -187,11 +200,9 @@ export default function ChatMessages() {
             {showDateHeader && (
               <div className="rounded-md px-4 py-2 my-4 bg-slate-200 text-slate-600 font-medium text-sm text-center">
                 {formatDateHeader(message.sentAt)}
-                {formatDateHeader(message.sentAt)}
               </div>
             )}
 
-            {/* Tin nhắn của người gửi hoặc người nhận */}
             {isSender ? (
               <SenderMessage
                 time={message.sentAt}
@@ -213,11 +224,43 @@ export default function ChatMessages() {
             {hoveredMessageId === message.messageId && (
               <div
                 className="absolute top-1 right-2 cursor-pointer"
-                onClick={() => handleDeleteMessage(message.messageId)}
+                // onClick={() => handleDeleteMessage(message.messageId)}
+                onClick={() =>
+                  setActiveMessageId(
+                    activeMessageId === message.messageId ? null : message.messageId
+                  )}
               >
+                
                 &#x22EE;
               </div>
             )}
+            {/* Menu chức năng ghim và xóa tin nhắn */}
+            {activeMessageId === message.messageId && (
+  <div className="absolute top-8 right-4 bg-white shadow-lg rounded-lg border border-gray-200 py-1.5 px-2 z-20">
+    <button
+      className="flex items-center text-sm text-gray-700 hover:text-blue-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md"
+      onClick={() => {
+        pinMessage(message.messageId);
+        setActiveMessageId(null); // Ẩn menu sau khi chọn
+      }}
+    >
+      <span className="mr-2">
+        {message.isPinned ? <FaThumbtackSlash /> : <FaThumbtack />}
+      </span>
+      {message.isPinned ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn"}
+    </button>
+    <button
+      className="flex items-center text-sm text-gray-700 hover:text-red-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md"
+      onClick={() => handleDeleteMessage(message.messageId)}
+    >
+      <span className="mr-2">
+        <FaTrash />
+      </span>
+      Xóa tin nhắn
+    </button>
+  </div>
+)}
+
           </div>
         );
       })}
