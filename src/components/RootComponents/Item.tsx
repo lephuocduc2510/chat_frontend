@@ -7,7 +7,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import InsertChartOutlinedTwoToneIcon from '@mui/icons-material/InsertChartOutlinedTwoTone';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import InfoIcon from '@mui/icons-material/Info';
-import { MessageOutlined, PersonOutline, RoomOutlined } from '@mui/icons-material';
+import { Dashboard, MessageOutlined, PersonOutline, RoomOutlined } from '@mui/icons-material';
 
 // Array chứa các icon component
 const iconComponent = [
@@ -15,7 +15,9 @@ const iconComponent = [
   <PersonOutline />,
   <InfoIcon />,
   <SettingsOutlinedIcon />,
-  <MessageOutlined/>
+  <MessageOutlined/>,
+  <Dashboard />,
+  
 ];
 
 // Định nghĩa interface cho các props
