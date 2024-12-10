@@ -171,6 +171,7 @@ export default function ChatMessages() {
     if (isToday(messageDate)) return "Today";
     if (isYesterday(messageDate)) return "Yesterday";
     return format(messageDate, "d MMMM yyyy");
+    
   };
 
   const isMessageNewDay = (current: Message, previous?: Message): boolean => {
