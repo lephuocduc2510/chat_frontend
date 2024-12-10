@@ -53,6 +53,7 @@ export default function Type() {
    const sendMessage = async (message: string, fileHtml: string | null = null) => {
     if (connection && message.trim()) {
       try {
+        
         await connection.invoke("SendMessage", message, fileHtml);
         console.log("Message sent: ", message, fileHtml);
       } catch (err) {
