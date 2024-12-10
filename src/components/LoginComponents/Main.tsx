@@ -96,12 +96,12 @@ export default function Main() {
         }
         else if (decoded.role === "mod") {
           message.success('Login success');
-          window.location.href = '/home';  
+          window.location.href = '/home/message';  
         }
         else
         {
           message.success('Login success');
-          window.location.href = '/home/message';  
+          window.location.href = '/admin/users';  
         }
          
       }
