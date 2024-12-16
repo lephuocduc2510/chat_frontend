@@ -16,10 +16,10 @@ export default function Profile() {
   const avatarUrl = useSelector((state: RootState) => state.avatar.imageUrl);
   const storedData = JSON.parse(localStorage.getItem('info') || '{}');
   const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
-  const [image, setImage] = React.useState(storedData.imageUrl);
+  const [image, setImage] = React.useState(storedData.avatar);
   const [clicked, setClicked] = useState(false);
   const [saved, setSaved] = useState(false);
-
+  const idUser = storedData.id;
   useEffect(() => {
     if (avatarUrl) {
       setImage(avatarUrl);
@@ -74,13 +74,13 @@ export default function Profile() {
     };
 
     const formData = new FormData();
-    if (selectedImage) formData.append("Image", selectedImage);
+    if (selectedImage) formData.append("avatar", selectedImage);
     console.log(formData);
-    const data = await axiosClient.put("/api/user/change-image-profile", formData, config);
+    const data = await axiosClient.post(`/user/auth/upload-avatar/${idUser}`, formData, config);
     if (data.status === 200) {
       alert("Are you sure you want to save this picture?");
       setSaved(true);
-      dispatch(updateUserAvatar(data.data.result.imageUrl));
+      dispatch(updateUserAvatar(data.data.avatar));
       console.log("Saved:", avatarUrl);
       notification.success({
         message: 'Successfully saved',
@@ -91,7 +91,7 @@ export default function Profile() {
           console.log('Notification closed');
         },
       });
-   
+
     }
 
     else

@@ -5,8 +5,8 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
-import { SignalRProvider } from './context/SignalRContext';
 import { RoomProvider } from './context/RoomContext';
+import { SocketProvider } from './context/SocketContext';
 
 
 const root = ReactDOM.createRoot(
@@ -14,13 +14,13 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <Provider store={store}>
-    <SignalRProvider>
+      <SocketProvider>
       <RoomProvider>
       <React.StrictMode>
         <App />  
       </React.StrictMode>
       </RoomProvider>
-    </SignalRProvider>
+      </SocketProvider>
   </Provider>
 );
 

@@ -10,12 +10,12 @@ import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 interface UserProps {
     values: {
         id: string;
-        pic: string;
+        avatar: string;
         name: string;
         email: string;
         role: string;
     };
-    add: (values: { pic: string; name: string; email: string }) => void;
+    add: (values: { avatar: string; name: string; email: string }) => void;
     remove: (values: { id: string }) => void; // Thêm hàm remove để xóa người dùng
 }
 
@@ -46,7 +46,7 @@ export default function GroupUserDetails({ values, add, remove }: UserProps) {
         >
             <Avatar
                 alt="User-pic"
-                src={values.pic}
+                src={values.avatar || 'https://i.pravatar.cc/300'} // Thêm src để hiện ảnh
                 style={{
                     width: '48px',
                     height: '48px',

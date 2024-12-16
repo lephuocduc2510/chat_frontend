@@ -6,7 +6,7 @@ import Avatar from '@mui/material/Avatar';
 interface ChipExtendProps {
   value: {
     id: string;
-    pic: string;
+    avatar: string;
     name: string;
   };
   remove: (id: string) => void; // Hàm remove nhận tham số là id kiểu string
@@ -25,7 +25,7 @@ const ChipExtend: React.FC<ChipExtendProps> = ({ value, remove }) => {
       avatar={
         <Avatar
           alt="Natacha"
-          src={value.pic}
+          src={value.avatar}
           style={{ objectFit: 'cover' }} // Thêm thuộc tính này nếu cần
         />
       }

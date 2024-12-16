@@ -4,7 +4,7 @@ import ChipExtend from './util/ChipExtend'
 interface User {
   id: string;
   name: string;
-  pic: string;
+  avatar: string;
 }
 
 interface GroupUserListProps {

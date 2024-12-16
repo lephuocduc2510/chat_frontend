@@ -11,7 +11,15 @@ interface SenderMessageProps {
 }
 
 export default function SenderMessage({ time, content, isPinned, fileUrl }: SenderMessageProps) {
-  const messageTime = new Date(time);
+  const messageTime = time ? time : "";
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12; // Chuyển đổi giờ 24h sang 12h
+    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
 
   return (
     <div className="max-w-[60%] ml-auto h-auto">
@@ -36,9 +44,9 @@ export default function SenderMessage({ time, content, isPinned, fileUrl }: Send
             <BsPinAngleFill className="absolute top-2 right-2 text-yellow-400" size={16} />
           )}
 
-          <p className="absolute bottom-[3px] right-2 text-[9px] pl-2 flex items-end font-medium">
-            {`${String(messageTime.getHours() % 12 || 12).padStart(2, '0')}:${String(messageTime.getMinutes()).padStart(2, '0')} ${messageTime.getHours() >= 12 ? "pm" : "am"}`}
-          </p>
+            <p className="absolute bottom-[3px] right-2 text-[9px] pl-2 flex items-end font-medium">
+              {formatTime(messageTime)}
+            </p>
         </div>
       </div>
     </div>

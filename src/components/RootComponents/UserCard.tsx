@@ -14,12 +14,12 @@ const UserCard: React.FC = () => {
   const datareduxImg = useSelector((state: RootState) => state.avatar.imageUrl);
   const dataredux = useSelector((state: RootState) => state.user.userInfo);
 
-  const [Name,setName]=useState(Obj?.name);
-  const [image, setImage] = useState(Obj?.imageUrl) ;             
+  const [Name,setName]=useState(Obj?.fullname);
+  const [image, setImage] = useState(Obj?.avatar) ;             
 
   useEffect(() => {
-    if (dataredux?.name ) {
-      setName(dataredux.name);
+    if (dataredux?.fullname ) {
+      setName(dataredux.fullname);
 
     }
   }, [dataredux]);;

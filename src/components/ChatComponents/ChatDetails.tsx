@@ -18,26 +18,26 @@ import AddUserToRoom from "./AddUserToRoom";
 import PinnedMessages from "./PinMessages";
 
 const style = {
-  
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    width: window.innerWidth / 3,
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    borderRadius: "14px",
-    p: 4,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",  // Căn giữa nội dung theo chiều ngang
-    flexDirection: "column",
-    outline: "none",
-    maxWidth: "700px", // Giới hạn chiều rộng
-    maxHeight: "850px", // Giới hạn chiều cao để không vượt quá viewport
-    overflowY: "auto",
-    marginTop: "-23%",  // Căn giữa theo chiều dọc
-    marginLeft: "-15%", // Điều chỉnh theo chiều ngang (có thể thay đổi giá trị này)
-  
+
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  width: window.innerWidth / 3,
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  borderRadius: "14px",
+  p: 4,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",  // Căn giữa nội dung theo chiều ngang
+  flexDirection: "column",
+  outline: "none",
+  maxWidth: "700px", // Giới hạn chiều rộng
+  maxHeight: "850px", // Giới hạn chiều cao để không vượt quá viewport
+  overflowY: "auto",
+  marginTop: "-23%",  // Căn giữa theo chiều dọc
+  marginLeft: "-15%", // Điều chỉnh theo chiều ngang (có thể thay đổi giá trị này)
+
 };
 
 interface ChatDetailsProps {
@@ -47,10 +47,10 @@ interface ChatDetailsProps {
 
 interface User {
   id: string;
-  name: string;
+  fullname: string;
   imageUrl: string;
-  userName: string;
-  role: string;
+  email: string;
+  roomId: string;
 }
 
 const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
@@ -61,6 +61,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   const idRoom = useSelector((state: RootState) => state.chat.selectedChatId);
   const roomName = useSelector((state: RootState) => state.chat.nameRoom);
   const [isModalConfirm, setIsModalConfirm] = useState(false);
+  const [isMod, setIsMod] = useState(false);
+  const cookie = localStorage.getItem("token");
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
   const [showAddUser, setShowAddUser] = useState(false);
   const [pinnedMessages, setPinnedMessages] = React.useState<PinnedMessage[]>([]);
@@ -128,22 +130,34 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   };
   // Fetch pinned messages
   const getPinnedMessages = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-      const response = await axiosClient.get(`/api/Messages/room/${idRoom}/pinned-messages`, config);
+    // try {
+    //   const token = localStorage.getItem("token");
+    //   const config = {
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   };
+    //   const response = await axiosClient.get(`/api/Messages/room/${idRoom}/pinned-messages`, config);
 
-      console.log("API Response:", response.data.result); // Debug dữ liệu trả về từ API
+    //   console.log("API Response:", response.data.result); // Debug dữ liệu trả về từ API
 
-      setPinnedMessages(response.data.result || []);
-    } catch (error) {
-      console.error("Error fetching pinned messages:", error);
-    }
+    //   setPinnedMessages(response.data.result || []);
+    // } catch (error) {
+    //   console.error("Error fetching pinned messages:", error);
+    // }
   };
+
+  React.useEffect(() => {
+    if (cookie !== null) {
+      const role = JSON.parse(atob(cookie.split('.')[1])).role;
+      if (role === 'mod') {
+        setIsMod(true);
+      } else {
+        setIsMod(false);
+      }
+    }
+  }
+    , [chatModel, showAddUser]);
 
 
   React.useEffect(() => {
@@ -152,7 +166,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
       dispatch(updateRoomDeleted(idRoom));
     }
   },
-    [chatModel]);
+    [chatModel, showAddUser]);
 
   // Gọi API khi chatModel mở
   React.useEffect(() => {
@@ -169,7 +183,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
         Authorization: `Bearer ${cookie}`,
       },
     };
-    const response = await axiosClient.get(`/api/Rooms-User/${idRoom}`, config);
+    const response = await axiosClient.get(`/rooms-user/room/${idRoom}`, config);
     const user = response.data.result;
     setUsers(user);
   };
@@ -183,10 +197,10 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
     };
     const idUser = [userId];
     const data = {
-      idRooms: idRoom,
+      idRoom: idRoom,
       idUser
     };
-    const response = await axiosClient.delete("/api/Rooms-User/remove-user-out-room", { data, ...config });
+    const response = await axiosClient.delete("/rooms-user", { data, ...config });
     if (response.status === 200) {
       getUser();
       notify("User removed successfully");
@@ -217,7 +231,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   //////////////////// Add user ///////////////////////
 
   const searchHandler = async (value: string) => {
-   
+
     const cookie = localStorage.getItem("jwt");
     const response = await fetch(
       `${process.env.REACT_APP_API_URL}/api/v1/users?search=${value}`,
@@ -229,7 +243,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
       }
     );
 
- 
+
     const data = await response.json();
     data.users.length = data.users.length > 2 ? (data.users.length = 2) : data.users.length;
     setResults(data.users);
@@ -246,21 +260,26 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
   return (
     <div className="absolute max-h-500 overflow-y-auto">
       <Modal open={chatModel} onClose={closeChat} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box       
-        sx={style}>
-          <div className="text-2xl font-Poppins">{roomName}</div>
-          <div className="flex w-[100%]">
+        <Box
+          sx={style}>
+          <div className="text-2xl font-Poppins">Chi tiết phòng</div>
+          <div className="flex w-full justify-center mt-5">
             <input
-              defaultValue={"Chat Name"}
+              defaultValue={roomName}
               disabled
               spellCheck="false"
               placeholder="Chat Name"
-              className="text-lg h-[16%] w-[100%] mt-5 font-thin px-1 py-2 outline-none bg-[#F6F8FC]"
-            ></input>
-            <button className="bg-[#014DFE] text-white text-lg ml-2 px-2 py-1 mt-4 rounded-sm">Change</button>
+              className="text-2xl h-[50px] w-[80%] font-thin px-3 py-2 outline-none bg-[#F6F8FC] text-center rounded-lg shadow-sm"
+            />
           </div>
+
+
+          {/* // User in room */}
+
+
           {/* List users in room */}
           <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-6"> {/* Giảm margin-top từ 10 xuống 6 */}
+
             <label
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex justify-between items-center text-base px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -278,10 +297,10 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
                       <GroupUserDetails
                         values={{
                           id: user.id,
-                          pic: user.imageUrl,
-                          name: user.name,
-                          email: user.userName,
-                          role: user.role,
+                          avatar: user.imageUrl,
+                          name: user.fullname,
+                          email: user.email,
+                          role: "",
                         }}
                         add={() => { }}
                         remove={(user) => {
@@ -293,70 +312,78 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
                 ) : (
                   <div className="mt-5 px-4 py-2 text-gray-500 text-sm">No users found</div>
                 )}
+
+
+
               </div>
             )}
-            </div>
 
             <div>
               {!showAddUser ? (
                 // Hiển thị giao diện nút Add User
-                <div
-                  className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2"
-                  onClick={handleAddUserClick}
-                >
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
-                    <FaPlus className="text-blue-500" size={15} />
+                !isMod ? (
+                  <div
+                    className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2"
+                    onClick={handleAddUserClick}
+                  >
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
+                      <FaPlus className="text-blue-500" size={15} />
+                    </div>
+                    <span className="ml-2 text-blue-500">Add User</span>
                   </div>
-                  <span className="ml-2 text-blue-500">Add User</span>
-                </div>
+                ) : null
               ) : (
                 // Hiển thị component AddUserToRoom
                 <AddUserToRoom onBack={handleBack} />
               )}
-  
-            {/* <div className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
-                <FaPlus className="text-blue-500" size={15} />
-              </div>
-              <span className="ml-2 text-blue-500">Add User</span>
-            </div> */}
+            </div>
           </div>
-  
+
+
+
+          {/* <div className="px-5 py-3 hover:bg-blue-100 cursor-pointer flex items-center justify-start mt-2">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-blue-500 bg-blue-100 hover:bg-blue-200">
+              <FaPlus className="text-blue-500" size={15} />
+            </div>
+            <span className="ml-2 text-blue-500">Add User</span>
+          </div> */}
+
+
           {/* Pinned Messages */}
-          <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-4"> {/* Giảm margin-top từ 10 xuống 4 */}
-            <label
-              onClick={() => setIsPinnedDropdownOpen(!isPinnedDropdownOpen)}
-              className="flex justify-between items-center text-base px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <span>Pinned Messages</span>
-              <FaChevronDown
-                className={`transform transition-transform duration-300 ${isPinnedDropdownOpen ? "rotate-180" : "rotate-0"}`}
-              />
-            </label>
-            {isPinnedDropdownOpen && (
-              <div className="mt-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg shadow-inner bg-gray-50">
-                {pinnedMessages.length > 0 ? (
-                  pinnedMessages.map((message) => (
-                    <div key={message.messageId} className="p-3 mb-2 bg-gray-100 rounded-md shadow-sm">
-                      <PinnedMessages
-                        values={{
-                          content: message.content,
-                          name: message.user.name,
-                          sentAt: new Date(message.sentAt).toLocaleString(),
-                          pic: message.user.imageUrl,
-                        }}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <Typography variant="body2" className="text-gray-500">
-                    No pinned messages.
-                  </Typography>
-                )}
-              </div>
-            )}
-          </div>
-  
+          {/* <div className="p-6 w-[100%] max-w-lg mx-auto bg-white rounded-lg shadow-md mt-4"> 
+          <label
+            onClick={() => setIsPinnedDropdownOpen(!isPinnedDropdownOpen)}
+            className="flex justify-between items-center text-base px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <span>Pinned Messages</span>
+            <FaChevronDown
+              className={`transform transition-transform duration-300 ${isPinnedDropdownOpen ? "rotate-180" : "rotate-0"}`}
+            />
+          </label>
+          {isPinnedDropdownOpen && (
+            <div className="mt-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg shadow-inner bg-gray-50">
+              {pinnedMessages.length > 0 ? (
+                pinnedMessages.map((message) => (
+                  <div key={message.messageId} className="p-3 mb-2 bg-gray-100 rounded-md shadow-sm">
+                    <PinnedMessages
+                      values={{
+                        content: message.content,
+                        name: message.user.name,
+                        sentAt: new Date(message.sentAt).toLocaleString(),
+                        pic: message.user.imageUrl,
+                      }}
+                    />
+                  </div>
+                ))
+              ) : (
+                <Typography variant="body2" className="text-gray-500">
+                  No pinned messages.
+                </Typography>
+              )}
+            </div>
+          )}
+        </div> */}
+
           <div className="mt-10">
             <button
               className="text-[#0147FF] text-xl border-[2px] border-[#0147FF] px-4 py-1 ml-2 mt-4 rounded-lg"
@@ -364,19 +391,76 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
             >
               Cancel
             </button>
-            <button
-              className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg"
-              onClick={openModal}
+
+
+            {/* Xoá phòng chat */}
+            {isMod ?
+              (<button className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg" onClick={openModal}>
+
+                <DeleteIcon className="mr-2"></DeleteIcon>
+                Delete Chat
+              </button>) : null
+            }
+            <Modal
+              open={isModalConfirm}
+              onClose={closeModal}
+              aria-labelledby="modal-title"
+              aria-describedby="modal-description"
             >
-              <DeleteIcon className="mr-2"></DeleteIcon>
-              Delete Chat
-            </button>
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 300,
+                  bgcolor: "background.paper",
+                  borderRadius: "8px",
+                  boxShadow: 24,
+                  p: 3,
+                }}
+              >
+                <Typography id="modal-title" variant="h6" component="h2">
+                  Confirm Delete
+                </Typography>
+                <Typography id="modal-description" sx={{ mt: 2 }}>
+                  Are you sure you want to delete this chat?
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 2,
+                    mt: 3,
+                  }}
+                >
+                  <Button variant="outlined" onClick={closeModal}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => {
+                      console.log("Deleted");
+                      handleDeleteChat();
+
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
+
+
+
+
           </div>
         </Box>
       </Modal>
     </div>
   );
-  
+
 };
 
 export default ChatDetails;

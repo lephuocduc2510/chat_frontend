@@ -10,9 +10,9 @@ import { useSelector } from "react-redux";
 
 interface User {
     id: string;
-    name: string;
-    imageUrl: string;
-    userName: string;
+    fullname: string;
+    avatar: string;
+    email: string;
 }
 
 interface FormData {
@@ -47,9 +47,9 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
                 Authorization: `Bearer ${token}`,
             },
         };
-        const response = await axiosClient.get("/api/user", config);
+        const response = await axiosClient.get("/users", config);
         if (response.status === 200) {
-            setUsers(response.data.result);
+            setUsers(response.data);
         }
         setIsLoading(false);
     }
@@ -61,18 +61,17 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
     // Hàm tìm kiếm người dùng
     const handleSearch = () => {
         const result = users.filter((user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase())
+            user.fullname && user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) // Kiểm tra fullname có null hay không
         );
         // Kiểm tra nếu không có kết quả
         if (result.length === 0) {
             setCheckEmpty(true);
-        }
-        else {
+        } else {
             setCheckEmpty(false);
         }
-
         setFilteredUsers(result);
     };
+    
 
     // Tải danh sách người dùng khi nhập từ khóa tìm kiếm
     useEffect(() => {
@@ -101,9 +100,9 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
         setUsers((prev) => [...prev, removedUser]);
 
         // Nếu đang tìm kiếm, cập nhật lại danh sách filteredUsers
-        if (searchTerm) {
+        if (searchTerm && searchTerm !== "") {
             const result = [...users, removedUser].filter((user) =>
-                user.name.toLowerCase().includes(searchTerm.toLowerCase())
+                user.fullname.toLowerCase().includes(searchTerm.toLowerCase())
             );
             setFilteredUsers(result);
         }
@@ -120,14 +119,14 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
         };
         const idUser = groupUsers.map((user) => user.id);
         const data = {
-            idRooms: idRoom, // Chắc chắn phòng (room) được xác định
+            idRoom: idRoom, // Chắc chắn phòng (room) được xác định
             idUser: idUser,
-            idPerAdd: "string", // Điều chỉnh tham số này cho đúng
+        
         };
 
         try {
             const response = await axiosClient.post(
-                "/api/Rooms-User/add-user-in-room",
+                "/rooms-user",
                 data,
                 config
             );
@@ -192,14 +191,14 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
                                 <div key={user.id} className="flex items-center justify-between mb-2">
                                     <div className="flex items-center">
                                         <img
-                                            src={user.imageUrl}
-                                            alt={user.name}
+                                            src={user.avatar}
+                                            alt={user.fullname}
                                             className="w-8 h-8 rounded-full mr-2"
                                         />
                                         <div>
-                                            <span className="text-sm font-medium">{user.name}</span>
+                                            <span className="text-sm font-medium">{user.fullname}</span>
                                             <br />
-                                            <span className="text-xs text-gray-500">{user.userName}</span>
+                                            <span className="text-xs text-gray-500">{user.email}</span>
                                         </div>
                                     </div>
                                     <Button onClick={() => addUserToGroup(user)} variant="outlined">
@@ -226,14 +225,14 @@ const AddUserToRoom = ({ onBack }: { onBack: () => void }) => {
                             <div key={user.id} className="flex items-center justify-between mb-2">
                                 <div className="flex items-center">
                                     <img
-                                        src={user.imageUrl}
-                                        alt={user.name}
+                                        src={user.avatar}
+                                        alt={user.fullname}
                                         className="w-8 h-8 rounded-full mr-2"
                                     />
                                     <div>
-                                        <span className="text-sm font-medium">{user.name}</span>
+                                        <span className="text-sm font-medium">{user.fullname}</span>
                                         <br />
-                                        <span className="text-xs text-gray-500">{user.userName}</span>
+                                        <span className="text-xs text-gray-500">{user.email}</span>
                                     </div>
                                 </div>
                                 <Button

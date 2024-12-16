@@ -11,7 +11,6 @@ import NoChats from "./util/NoChats";
 import { motion } from 'framer-motion';
 import { axiosClient } from "../libraries/axiosClient";
 import { set } from "date-fns";
-import { SignalRProvider, useSignalR } from "../context/SignalRContext";
 import { useRoomContext } from "../context/RoomContext";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
@@ -19,6 +18,7 @@ import { setIsCreatingRoomm, updateChat } from "../redux/Chat/chatSlice";
 import { useAppDispatch } from "../redux/User/hook";
 import { addMessage } from "../redux/Chat/chatLatestSlice";
 import { updateRoom } from "../redux/Chat/roomSlice";
+import { SocketProvider, useSocket } from "../context/SocketContext";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -29,13 +29,13 @@ const fadeInUp = {
 interface User {
   _id: string;
   name: string;
-  pic: string;
+  avatar: string;
 }
 
 interface Chat {
-  idRooms: string;
-  roomName: string;
-  latestMessage?: { content: string };
+  roomId: string;
+  name: string;
+  latestMessage?: string
   createdDate: string;
   notify?: boolean;
   isActive: boolean;
@@ -47,6 +47,7 @@ interface Chat {
 
 const HomeChat: React.FC = () => {
   const dispatch = useDispatch();
+  const socket = useSocket();
   const [chatModel, setChatModel] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
@@ -60,51 +61,41 @@ const HomeChat: React.FC = () => {
   const roomId = useSelector((state: RootState) => state.chat.selectedChatId) || "";
   const roomName = useSelector((state: RootState) => state.chat.nameRoom) || "";
   const checkCreateRoom = useSelector((state: RootState) => state.chat.isCreatingRoom);
-  const { connection } = useSignalR();
-  const userId =  JSON.parse(localStorage.getItem("info") || "{}").id;
+  const userId = JSON.parse(localStorage.getItem("info") || "{}").id;
+  const user = JSON.parse(localStorage.getItem("info") || "{}");
+  const latestChat = useSelector((state: RootState) => state.chatLatest) || "";
 
 
-  //received message
-//   useEffect(() => {
-//     console.log("Connection: ", connection);
-//     if (connection) {
-//       connection.on("ReceiveMessage", (messageData) => {
-//         console.log("Message received globally: ", messageData);
+
+  useEffect(() => {
+    // Lắng nghe sự kiện `new-message`
+    if (socket) {
+      socket.on("server-message", (data) => {
+        if (data.type === 'chat') {
+          console.log("🚀 New message received:", data);
+
+          // Gửi tin nhắn vào Redux store
+          const newMessage = {
+            userId: data.idUser,
+            content: data.message,
+            fileUrl: data.fileUrl,
+            sentAt: data.timeStamp,
+            roomId: data.roomId,
+          };
+          dispatch(addMessage(newMessage));
+        }
+      });
+
+
+      // Dọn dẹp kết nối khi component unmount
+      return () => {
+        socket.off("server-message");
+      };
+
+    }
+  }, [dispatch]);
   
-//         // Cập nhật tin nhắn vào Redux hoặc state
-//         dispatch(updateChat(messageData));
-//         const newMessage = {
-//           content: messageData.content,
-//           userId: messageData.userId,
-//           sentAt: messageData.sentAt,
-//           fileUrl: messageData.fileUrl,
-//           roomId: messageData.roomId,
-//         };
-//         dispatch(updateRoom(messageData.roomId));
-//         dispatch(addMessage(newMessage));
-//       });
-  
-//       // Cleanup listener khi component unmount
-//       return () => {
-//         connection.off("ReceiveMessage");
-//       };
-//     }
-//   },  [dispatch]);
-
-//   useEffect(() => {
-//   if (connection && userId) {
-//     chats.forEach(chat => {
-//       connection.invoke("JoinRoom", chat.idRooms, userId)
-//         .then(() => console.log(`Joined Room ${chat.idRooms}`)
-      
-      
-//       )
-//         .catch(err => console.error(`Error joining room ${chat.idRooms}: `, err));
-//     });
-//   }
-// }, [connection, chats, userId])
-
-
+ 
 
 
 
@@ -116,9 +107,16 @@ const HomeChat: React.FC = () => {
       },
     };
     try {
-      const response = await axiosClient.get("/api/Rooms-User/get-rooms-by-user", config);
+      const response = await axiosClient.get(`/rooms-user/user/${userId}`, config);
+      const rooms = response.data.result || [];
       setChats(response.data.result || []);
       setIsEmpty(response.data.result.length === 0);
+      // Join all rooms after fetching
+      if (socket && rooms.length > 0) {
+        const roomIds = rooms.map((room: Chat) => room.roomId);
+        socket.emit('client-message', { type: 'join', rooms: roomIds, userId: userId, name: user.name });
+        console.log('Joined rooms:', roomIds);
+      }
     } catch (error) {
       console.error("Error fetching rooms:", error);
     } finally {
@@ -134,41 +132,42 @@ const HomeChat: React.FC = () => {
 
 
 
+
   return (
+
     <div className="grid max-[1250px]:w-[82vw] max-[1024px]:w-[92vw] max-[1250px]:grid-cols-[4.5fr,7fr] max-[900px]:grid-cols-[5.5fr,7fr] w-[80vw] relative grid-rows-[1fr,7fr] grid-cols-[3.5fr,7fr]">
-      <SignalRProvider>
-        <BasicModal handleClose={handleClose} open={open} />
-        <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
-        <TopBar createGroup={handleOpen} />
-        <div className="flex flex-row items-center border-[1px] border-[#f5f5f5]">
-          <ChatTitle openChatModel={() => setChatModel(true)}  idRooms= {roomId} roomName= {roomName} />
-        </div>
-        <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
-          {isLoading && <Loading />}
-          {!isLoading &&
-            chats &&
-            chats.map((data, index) => (
-              <motion.div
-                key={index}
-                initial="initial"
-                animate="animate"
-                variants={fadeInUp}
-              >
-                <ChatBar select={(value) => {
-                  console.log(value);
-                  console.log(value.latestMessage);
-                  setRoomSelected(value._id);
-                }} data={data} />
-              </motion.div>
-            ))}
-          {isEmpty === true && chats.length === 0 && <NoChats />}
-        </div>
-        <div className="bg-[#F6F8FC] flex flex-col relative overflow-hidden">
-          <ChatMessages />
-          <Type />
-        </div>
-      </SignalRProvider>
+      <BasicModal handleClose={handleClose} open={open} />
+      <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
+      <TopBar createGroup={handleOpen} />
+      <div className="flex flex-row items-center border-[1px] border-[#f5f5f5]">
+        <ChatTitle openChatModel={() => setChatModel(true)} idRooms={roomId} roomName={roomName} />
+      </div>
+      <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
+        {isLoading && <Loading />}
+        {!isLoading &&
+          chats &&
+          chats.map((data, index) => (
+            <motion.div
+              key={index}
+              initial="initial"
+              animate="animate"
+              variants={fadeInUp}
+            >
+              <ChatBar select={(value) => {
+                console.log(value);
+                console.log(value.latestMessage);
+                setRoomSelected(value._id);
+              }} data={data} />
+            </motion.div>
+          ))}
+        {isEmpty === true && chats.length === 0 && <NoChats />}
+      </div>
+      <div className="bg-[#F6F8FC] flex flex-col relative overflow-hidden">
+        <ChatMessages />
+        <Type />
+      </div>
     </div>
+
   );
 };
 

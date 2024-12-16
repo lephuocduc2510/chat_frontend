@@ -8,7 +8,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup, { action as SignupAction } from './pages/Signup';
 import LoginTest from './pages/testLogin';
-import HomeChat from './pages/HomeChat';
 // import Info from './pages/Info';
 import Settings from './pages/Settings';
 // import NotFoundPage from './pages/404Page';
@@ -22,6 +21,8 @@ import RoomsUser from './pages/admin/roomUser';
 import HeaderAdmin from './pages/admin/header';
 import AdminLayout, {loader as loadingActionAdmin} from './pages/admin/layout';
 import NotFoundPage from './pages/404NotFound';
+import HomeChat from './pages/HomeChat';
+import VerifyEmail from './pages/EmailVerify';
 // import Search from './pages/Search';
 
 
@@ -49,6 +50,12 @@ const router = createBrowserRouter([
     element: <HomeChat></HomeChat>,
 
   },
+  {
+    path: 'auth/verify/:userId/:unique_string',
+    element: <VerifyEmail></VerifyEmail>
+
+  },
+
   {
     path: '/home',
     element: <Root></Root>,

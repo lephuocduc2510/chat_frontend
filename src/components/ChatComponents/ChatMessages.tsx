@@ -11,52 +11,128 @@ import { isToday, isYesterday } from 'date-fns';
 import { FaThumbtack, FaTrash } from 'react-icons/fa';
 import { FaThumbtackSlash } from "react-icons/fa6";
 import { Popconfirm, message } from "antd";
+import { useSocket } from "../../context/SocketContext";
 
 // Định nghĩa kiểu Message
 interface Message {
-  messageId: number;
+  _id?: string;
   content: string;
-  sentAt: string;
-  isPinned: boolean;
-  fileUrl?: string;
-  userId: string;
-  user: {
-    name: string;
-    imageUrl?: string;
-    id: string;
-    userName: string;
-    email: string;
-    [key: string]: any;
-  };
+  sentAt?: string;
+  timestamp: string;
+  // fileUrl?: string;
+  senderId: string;
+  nameUser: string;
+  avatar?: string;
   roomId: number;
-  isRead: boolean;
+  isPinned?: boolean;
 };
+
+
+// interface Message {
+//   messageId: number;
+//   content: string;
+//   sentAt: string;
+//   isPinned: boolean;
+//   fileUrl?: string;
+//   idUser: string;
+//   nameUser: string;
+//   imageUrl?: string;
+//   id: string;
+//   userName: string;
+//   email: string;
+//   [key: string]: any;
+//   roomId: number;
+//   isRead: boolean;
+// };
 
 export default function ChatMessages() {
   const dispatch = useDispatch();
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const userId = storedData.id;
-
   const selectedChat = useSelector((state: RootState) => state.chat.selectedChatId);
   const checkChatUpdate = useSelector((state: RootState) => state.chat.messages);
-
+  const socket = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [shouldScroll, setShouldScroll] = useState(false);
   const [showNewMessageAlert, setShowNewMessageAlert] = useState(false);
-
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
 
-  const [hoveredMessageId, setHoveredMessageId] = useState<number | null>(null);
-  const [activeMessageId, setActiveMessageId] = useState<number | null>(null);
+
+
+
+  // lắng nghe tin nhắn từ server để load lại tin nhắn
+  // Hàm để tạo đối tượng Date từ timestamp (chỉ giờ, phút, giây)
+  const createDateFromTimestamp = (timestamp: string) => {
+    const [hours, minutes, seconds] = timestamp.split(':').map(Number);
+    const now = new Date();
+    now.setHours(hours, minutes, seconds, 0);  // Thiết lập giờ, phút, giây cho ngày hiện tại
+    return now;
+  };
+
+  // Hàm để format thời gian
+  const formatDateHeader = (timestamp: string) => {
+    const messageDate = createDateFromTimestamp(timestamp);
+
+    if (isToday(messageDate)) {
+      return 'Hôm nay';
+    }
+
+    if (isYesterday(messageDate)) {
+      return 'Hôm qua';
+    }
+
+    return format(messageDate, 'dd/MM/yyyy'); // Hiển thị ngày nếu không phải hôm nay hoặc hôm qua
+  };
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('connect', () => {
+        console.log('Socket connected');
+      });
+      socket.on('server-message', (data) => {
+        if (data.type === 'chat' && data.roomId === selectedChat) {
+          console.log('Message matches room', data);
+          saveMessage(data.roomId, data.idUser, data.message, data.nameUser, data.timestamp);
+          // setMessages((prev) => [...prev, data]);    
+        }
+      });
+
+      // Cleanup
+      return () => {
+        socket.off('server-message');
+      };
+    }
+  }, [socket, selectedChat]);
+
+
+
+  // save message
+  const saveMessage = (roomId: string, userId: string, messageContent: string, nameUser: string, timestamp: string) => {
+    setMessages(prevMessages => [
+      ...prevMessages,
+      {
+
+        roomId: parseInt(roomId),
+        senderId: userId,
+        content: messageContent,
+        nameUser: nameUser,
+        timestamp
+      }
+    ]);
+    console.log('Message saved:', messageContent);
+  };
+
+
   const scrollToBottom = () => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   };
 
-  const handleMouseEnter = (messageId: number) => {
+  const handleMouseEnter = (messageId: string) => {
     setHoveredMessageId(messageId);
   };
 
@@ -76,8 +152,8 @@ export default function ChatMessages() {
         },
       };
 
-      const response = await axiosClient.get(`/api/Messages/room/${selectedChat}`, config);
-      if (response.data.result?.[response.data.result.length - 1]?.userId === userId) {
+      const response = await axiosClient.get(`/messages/room/${selectedChat}`, config);
+      if (response.data.result?.[response.data.length - 1]?.senderId === userId) {
         setShouldScroll(true);
       } else {
         if (isNearBottom()) {
@@ -88,7 +164,8 @@ export default function ChatMessages() {
         }
       }
 
-      setMessages(response.data.result || []);
+      setMessages(response.data || []);
+      console.log("Messages:", response.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -125,7 +202,7 @@ export default function ChatMessages() {
     setShowNewMessageAlert(false);
   };
 
-  const handleDeleteMessage = async (messageId: number) => {
+  const handleDeleteMessage = async (messageId: any) => {
     try {
       const config = {
         headers: {
@@ -135,7 +212,7 @@ export default function ChatMessages() {
 
       await axiosClient.delete(`/api/Messages/${messageId}`, config);
       setMessages((prevMessages) =>
-        prevMessages.filter((message) => message.messageId !== messageId)
+        prevMessages.filter((message) => message._id !== messageId.toString())
       );
       message.success("Xóa tin nhắn thành công!");
     } catch (error) {
@@ -143,39 +220,11 @@ export default function ChatMessages() {
       console.error(error);
     }
   };
-  // pin message
-  const pinMessage = async (messageId: number) => {
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      // Gọi API pin với messageId
-      const response = await axiosClient.put(`/api/Messages/pin/${messageId}`, {}, config);
-      if (response.status === 200) {
-        console.log(`Tin nhắn ${messageId} đã được ghim`);
-      }
-    } catch (error) {
-      console.error("Lỗi khi ghim tin nhắn:", error);
-    }
-  };
-  const isValidDate = (date: string) => !isNaN(new Date(date).getTime());
 
-  const formatDateHeader = (date: string): string => {
-    if (!isValidDate(date)) {
-      return "Invalid date";
-    }
 
-    const messageDate = new Date(date);
-    if (isToday(messageDate)) return "Today";
-    if (isYesterday(messageDate)) return "Yesterday";
-    return format(messageDate, "d MMMM yyyy");
-  };
 
-  const isMessageNewDay = (current: Message, previous?: Message): boolean => {
-    return !previous || formatDateHeader(current.sentAt) !== formatDateHeader(previous.sentAt);
-  };
+
+
 
   return (
     <div
@@ -185,49 +234,51 @@ export default function ChatMessages() {
       {!loading && messages.length === 0 && <EmptyMessages />}
 
       {messages.map((message, index) => {
-        const isSender = message.userId === userId;
-        const userName = message.user?.name || "Unknown User";
-        const userImage = message.user?.imageUrl || "default-profile.jpg";
-        const showDateHeader = isMessageNewDay(message, messages[index - 1]);
+        const isSender = message.senderId === userId;
+        const userName = message.nameUser || "Unknown User";
+        const userImage = message?.avatar || "default-profile.jpg";
+
+
 
         return (
           <div
-            key={message.messageId}
+            key={message._id}
             className="relative"
-            onMouseEnter={() => handleMouseEnter(message.messageId)}
+            onMouseEnter={() => message._id && handleMouseEnter(message._id)}
             onMouseLeave={handleMouseLeave}
           >
-            {showDateHeader && (
+            {/* Hiển thị tiêu đề ngày */}
+            {index === 0 || formatDateHeader(message.timestamp) !== formatDateHeader(messages[index - 1].timestamp) ? (
               <div className="rounded-md px-4 py-2 my-4 bg-slate-200 text-slate-600 font-medium text-sm text-center">
-                {formatDateHeader(message.sentAt)}
+                {formatDateHeader(message.timestamp)}
               </div>
-            )}
+            ) : null}
 
             {isSender ? (
               <SenderMessage
-                time={message.sentAt}
+                time={message.timestamp}
                 content={message.content}
-                isPinned={message.isPinned}
+                isPinned={message.isPinned ?? false}
               />
             ) : (
               <RecieverMessage
-                key={message.messageId}
+                key={message._id}
                 name={userName}
-                imageUrl={userImage}
+                avatar={userImage}
                 index={index}
                 content={message.content}
-                time={message.sentAt}
-                isPinned={message.isPinned}
+                time={message.timestamp}
+                isPinned={message.isPinned ?? false}
               />
             )}
 
-            {hoveredMessageId === message.messageId && (
+            {hoveredMessageId === message._id && (
               <div
                 className="absolute top-1 right-2 cursor-pointer"
                 // onClick={() => handleDeleteMessage(message.messageId)}
                 onClick={() =>
                   setActiveMessageId(
-                    activeMessageId === message.messageId ? null : message.messageId
+                    activeMessageId === message._id ? null : message._id || null
                   )}
               >
 
@@ -235,12 +286,12 @@ export default function ChatMessages() {
               </div>
             )}
             {/* Menu chức năng ghim và xóa tin nhắn */}
-            {activeMessageId === message.messageId && (
+            {activeMessageId === message._id && (
               <div className="absolute top-8 right-4 bg-white shadow-lg rounded-lg border border-gray-200 py-1.5 px-2 z-20">
                 <button
                   className="flex items-center text-sm text-gray-700 hover:text-blue-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md"
                   onClick={() => {
-                    pinMessage(message.messageId);
+                    // pinMessage(message._id);
                     setActiveMessageId(null); // Ẩn menu sau khi chọn
                   }}
                 >
@@ -252,7 +303,7 @@ export default function ChatMessages() {
 
                 <Popconfirm
                   title="Bạn có chắc chắn muốn xóa tin nhắn này không?"
-                  onConfirm={() => handleDeleteMessage(message.messageId)}
+                  onConfirm={() => handleDeleteMessage(message._id)}
                   okText="Xóa"
                   cancelText="Hủy"
                   placement="topRight"

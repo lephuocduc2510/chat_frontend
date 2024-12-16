@@ -8,9 +8,9 @@ interface UserInfoState {
 const initialState: UserInfoState = {
   userInfo: {
     id: null,
-    name: "",
+    fullname: "",
     email: "",
-    imageUrl: "",
+    avatar: "",
     phoneNumber: "",
   },
 };

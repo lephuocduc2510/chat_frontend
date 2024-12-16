@@ -8,7 +8,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { addMessage } from "../../redux/Chat/chatLatestSlice";
-import { useSignalR } from "../../context/SignalRContext";
+import { useSocket } from "../../context/SocketContext";
+import { Email } from "@mui/icons-material";
 
 type ChatMessage = {
   userId: string;
@@ -20,12 +21,12 @@ type ChatMessage = {
 
 export default function Type() {
   const dispatch = useDispatch();
-  const { connection } = useSignalR();
+  const  socket = useSocket();
   const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const idRoom = useSelector((state: RootState) => state.chat.selectedChatId);
+  const idRoom = useSelector((state: RootState) => state.chat.selectedChatId) || "";
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
 
   const sendMessage = async (content: string, fileUrl: string | null = null) => {
@@ -34,26 +35,31 @@ export default function Type() {
       return;
     }
 
-    if (connection) {
-      setIsLoading(true); // Start loading
-      try {
-        await connection.invoke("SendMessage", content, fileUrl);
-        console.log("Message sent:", content, fileUrl);
+    if (socket) {
+      socket.emit('client-message', {
+        type: 'chat',
+        roomId: idRoom,
+        idUser: storedData.id,
+        nameUser: storedData.fullname,
+        message: content,
+        timestamp: new Date().toLocaleTimeString(),
 
-        const newMessage: ChatMessage = {
-          content,
-          sentAt: new Date().toISOString(),
-          userId: storedData.id,
-          fileUrl: fileUrl || "",
-          roomId: idRoom || "",
-        };
-        dispatch(addMessage(newMessage));
-      } catch (err) {
-        console.error("Error sending message:", err);
-      } finally {
-        setIsLoading(false); // Stop loading
-      }
+      });
+      console.log("Message sent:", content, idRoom);
     }
+  
+    const messageData: ChatMessage = {
+      userId: storedData.id,
+      content,
+      fileUrl: fileUrl || "",
+      sentAt: new Date().toISOString(),
+      roomId: idRoom,
+    };
+    dispatch(addMessage(messageData)); // Add message to chat list
+
+
+
+ 
   };
 
   const handleFileUpload = async () => {

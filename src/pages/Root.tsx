@@ -56,28 +56,25 @@ interface LoaderArgs {
 
 export async function loader({ request }: LoaderArgs) {
  
-  const cookie = localStorage.getItem('token');
-  const config = {  
-    headers: { Authorization: `Bearer ${cookie}` },
+  
+  const tokken = localStorage.getItem('token');
+  const config = {
+    headers: {
+      Authorization: `Bearer ${tokken}`,
+      'Content-Type': 'application/json',
+
+    },
   };
-
-  if (cookie === null) {
-   return redirect('/login');
+ 
+  const response = await axiosClient.get("/user/auth/verify", config);
+  if (response.status !== 200) {
+    return redirect('/404');
   }
- 
-  const username = JSON.parse(atob(cookie.split('.')[1])).unique_name;
- 
-  const response = await axiosClient.get(`/api/user/${username}`, config);
-  const user = response.data.result;
-
-  const parsed = JSON.stringify(user);
-  localStorage.setItem('info', parsed);
+  const user = response.data;
+  localStorage.setItem('info', JSON.stringify(user));
   store.dispatch(setUserInfo(user));
-  console.log(parsed);
-
   return user;
-
-  // Render lại trang khi có thay đổi trong localStorage
-
-
 }
+  
+  
+

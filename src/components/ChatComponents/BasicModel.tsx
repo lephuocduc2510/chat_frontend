@@ -13,13 +13,13 @@ import { setIsCreatingRoomm } from "../../redux/Chat/chatSlice";
 
 interface User {
   id: string;
-  name: string;
-  imageUrl: string;
-  userName: string;
+  fullname: string;
+  avatar: string;
+  email: string;
 }
 
 interface FormData {
-  roomName: string;
+  name: string;
   friends: [];
   description: string,
 }
@@ -48,12 +48,12 @@ const style = {
 const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
   const storedData = JSON.parse(localStorage.getItem('info') || '{}');
   const idUser = storedData.id;
-  const [formData, setFormData] = React.useState<FormData>({ roomName: "", friends: [], description: "", });
+  const [formData, setFormData] = React.useState<FormData>({ name: "", friends: [], description: "", });
   const [roomName, setRoomName] = React.useState<FormData>();
   const [idRoom, setIdRoom] = React.useState<string>("");
   const [users, setUsers] = React.useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = React.useState<User[]>([]);
-  const [groupUsers, setGroupUsers] = React.useState<User[]>([{ id: idUser, name: storedData.name, imageUrl: storedData.imageUrl, userName: storedData.userName }]);
+  const [groupUsers, setGroupUsers] = React.useState<User[]>([{ id: idUser, fullname: storedData.fullname, avatar: storedData.avatar, email: storedData.email }]);
   const [searchTerm, setSearchTerm] = React.useState(""); // Từ khóa tìm kiếm
   const [checkSent, setCheckSent] = React.useState(false);
   const isFirstRender = React.useRef(true); // Biến đánh dấu lần render đầu tiên
@@ -76,9 +76,9 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const response = await axiosClient.get("/api/user", config);
+    const response = await axiosClient.get("/users", config);
     if (response.status === 200) {
-      setUsers(response.data.result);
+      setUsers(response.data);
     }
   }
 
@@ -88,12 +88,15 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
 
   // Lọc người dùng khi nhập vào ô tìm kiếm
   React.useEffect(() => {
+    if(searchTerm === "") {
+      return ;
+    }
     const lowerSearchTerm = searchTerm.toLowerCase();
     setFilteredUsers(
       users.filter(
         (user) =>
           !groupUsers.find((groupUser) => groupUser.id === user.id) &&
-          user.name.toLowerCase().includes(lowerSearchTerm)
+          user.fullname.toLowerCase().includes(lowerSearchTerm)
       )
     );
   }, [searchTerm, users, groupUsers]);
@@ -109,7 +112,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
       addUsersToRoom();
       //reset input and groupUsers
       setGroupUsers([]);
-      setFormData({ roomName: "", friends: [], description: "", });
+      setFormData({ name: "", friends: [], description: "", });
 
     }
   }, [idRoom, checkSent]);
@@ -127,13 +130,13 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
       },
     };
     const body = {
-      roomName: formData.roomName,
+      name: formData.name,
       description: formData.description,
       createdBy
     };
-    const response = await axiosClient.post("/api/rooms", body, config);
+    const response = await axiosClient.post("/rooms", body, config);
     if (response.status === 200) {
-      setIdRoom(response.data.result.idRooms);
+      setIdRoom(response.data.id);
       handleClose();
       setCheckSent(false);
       // setIsCreatingRoom(false);
@@ -157,11 +160,12 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     console.log("Id room: ", idRoom);
     console.log("Id user: ", idUser);
     const data = {
-      idRooms: idRoom,
+      idRoom: idRoom,
       idUser: idUser,
-      "idPerAdd": "string"
+
     };
-    const response= await axiosClient.post("/api/Rooms-User/add-user-in-room", data, config);
+    console.log("Data: ", data);
+    const response= await axiosClient.post("/rooms-user", data, config);
     if (response.status === 200) {
       console.log("Add user to room successfully");
     }
@@ -194,11 +198,11 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
         <Box sx={style}>
           <div className="text-2xl font-Poppins">Create a group Chat</div>
           <input
-            name="roomName"
+            name="name"
             type="text"
             spellCheck="false"
             placeholder="Group Name"
-            value={formData.roomName}
+            value={formData.name}
             onChange={handleChange}
             className="text-lg h-[16%] w-[100%] mt-5 font-thin px-1 py-2 outline-none bg-[#F6F8FC]"
           />
@@ -232,7 +236,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
                 filteredUsers.map((user) => (
                   <User
                     key={user.id}
-                    values={{ pic: user.imageUrl, name: user.name, email: user.userName }}
+                    values={{ avatar: user.avatar, name: user.fullname, email: user.email }}
                     add={() => addUserToGroup(user)}
                   />
                 ))
@@ -247,8 +251,8 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
             <GroupUserList
               users={groupUsers.map((user) => ({
                 id: user.id,
-                name: user.name,
-                pic: user.imageUrl,  
+                name: user.fullname,
+                avatar: user.avatar,  
               }))}
               remove={removeUserFromGroup}
             />

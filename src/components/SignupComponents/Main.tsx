@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Square from '../LoginComponents/Square';
-import {  Link, useNavigation } from 'react-router-dom';
+import { Link, useNavigation } from 'react-router-dom';
 import { useSubmit } from 'react-router-dom';
-import { Input, Button, Typography, Spin, Form, message, Modal } from 'antd';
+import { Input, Button, Typography, Spin, Form, message, Modal, notification } from 'antd';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import {  Icon, IconButton, Paper } from '@mui/material';
+import { Icon, IconButton, Paper } from '@mui/material';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import { ToastContainer, toast } from "react-toastify";
 import Visibility from '@mui/icons-material/Visibility';
@@ -33,7 +33,7 @@ interface PasswordRequirementsProps {
 
 const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({ password }) => {
 
-  
+
   const specialCharacterRegex = /[!@#$%^&*(),.?":{}|<>]/;
   const numberRegex = /[0-9]/;
   const uppercaseRegex = /[A-Z]/;
@@ -116,17 +116,37 @@ const Main: React.FC = () => {
     try {
 
       setUsername(values.userName);
-      setLoading(true);  
-      setTimeout(() => {      
-        setLoading(false);  
+      setLoading(true);
+      setTimeout(() => {
+        setLoading(false);
       }
         , 5000);
       console.log("Register values", values);
-      const data = await axiosClient.post('api/auth/register', values);
+      const data = await axiosClient.post('/auth/register', values);
       console.log("Register success", data);
       setCheckForm(true);
-      message.success('Register success');
-      console.info("Register success", data);
+      if (data.status === 200) {
+        notification.success({
+          message: 'Successfully Register',
+          description: 'Email verification has been sent to your email.',
+          duration: 2, // Thời gian hiển thị (2 giây)
+          placement: 'top', // Vị trí thông báo
+          onClose: () => {
+            console.log('Notification closed');
+          },
+        });
+  
+      }
+      else
+        notification.error({
+          message: 'Register failed',  // Tiêu đề thông báo lỗi
+          description: 'An error occurred while registering. Please try again later.',  // Nội dung thông báo lỗi
+          duration: 3,  // Thời gian hiển thị (3 giây)
+          placement: 'topRight',  // Vị trí thông báo
+          onClose: () => {
+            console.log('Error notification closed');
+          },
+        });
 
 
     }
@@ -151,7 +171,7 @@ const Main: React.FC = () => {
     console.log(error);
   };
 
-  
+
   return (
     <div className='flex flex-col items-center h-[100vh] w-[100vw] relative overflow-hidden px-2'>
       <Square isRight={false}></Square>
@@ -172,69 +192,77 @@ const Main: React.FC = () => {
           onFinish={onFinish}
         >
           <Form.Item
-            label="Name"
-            name="name"
+            label="Full Name"
+            name="fullname"
             rules={[{ required: true, message: 'Please enter your name!' }]}
           >
             <Input placeholder="Enter your name" />
           </Form.Item>
+
+          <Form.Item
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: 'Please enter your username!' }]}
+          >
+            <Input placeholder="Enter your username" />
+          </Form.Item>
           <Form.Item
             label="Email ID"
-            name="userName"
+            name="email"
             rules={[
               { required: true, message: 'Please enter your email!' },
               { type: 'email', message: 'Please enter a valid email!' },
             ]}
-            
+
           >
             <Input placeholder="Enter Email Address" />
           </Form.Item>
           <Form.Item
-          name="password"
-          label="Password"
-          rules={[
-            { required: true, message: 'Please enter your password!' },
-            {
-              validator: (_, value) => {
-                if (!value) {
-                  return Promise.reject(new Error());
-                }
-                // Điều kiện mật khẩu: ít nhất 1 chữ cái in hoa, 1 số, 1 ký tự đặc biệt
-                const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-                if (!passwordRegex.test(value)) {
-                  return Promise.reject(
-                    new Error(
-                      'Password must be at least 8 characters and include an uppercase letter, a number, and a special character.'
-                    )
-                  );
-                }
-                return Promise.resolve();
-              },
-            },
-          ]}
-        >
-          <Input.Password placeholder="Enter your password" />
-        </Form.Item>
-
-        <Form.Item
-          name="confirmPassword"
-          label="Confirm Password"
-          dependencies={['password']}
-          hasFeedback
-          rules={[
-            { required: true, message: 'Please confirm your password!' },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue('password') === value) {
+            name="password"
+            label="Password"
+            rules={[
+              { required: true, message: 'Please enter your password!' },
+              {
+                validator: (_, value) => {
+                  if (!value) {
+                    return Promise.reject(new Error());
+                  }
+                  // Điều kiện mật khẩu: ít nhất 6 ký tự, bao gồm ít nhất 1 số và 1 chữ cái
+                  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+                  if (!passwordRegex.test(value)) {
+                    return Promise.reject(
+                      new Error(
+                        'Password must be at least 6 characters and contain at least one letter and one number'
+                      )
+                    );
+                  }
                   return Promise.resolve();
-                }
-                return Promise.reject(new Error('Passwords do not match!'));
+                },
               },
-            }),
-          ]}
-        >
-          <Input.Password placeholder="Confirm your password" />
-        </Form.Item>
+            ]}
+          >
+            <Input.Password placeholder="Enter your password" />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmPassword"
+            label="Confirm Password"
+            dependencies={['password']}
+            hasFeedback
+            rules={[
+              { required: true, message: 'Please confirm your password!' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Passwords do not match!'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="Confirm your password" />
+          </Form.Item>
 
           <Form.Item>
             <Button
@@ -247,21 +275,21 @@ const Main: React.FC = () => {
               SIGN UP
             </Button>
 
-          </Form.Item>  
+          </Form.Item>
 
 
           <div>
-      <Typography className="text-center py-3">
-        Already have an account?{' '}
-        <Link className="text-blue-600" to="/login">
-          LogIn
-        </Link>
-      </Typography>
-      <div className="h-[1px] w-[100%] mt-4 bg-[#808080]"></div>
-      <div className="flex flex-col items-center mt-6">
-        
-      </div>
-    </div>
+            <Typography className="text-center py-3">
+              Already have an account?{' '}
+              <Link className="text-blue-600" to="/login">
+                LogIn
+              </Link>
+            </Typography>
+            <div className="h-[1px] w-[100%] mt-4 bg-[#808080]"></div>
+            <div className="flex flex-col items-center mt-6">
+
+            </div>
+          </div>
         </Form>
 
 
@@ -270,7 +298,7 @@ const Main: React.FC = () => {
 
 
 
-      <Modal
+      {/* <Modal
   centered
   title={<span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4A90E2' }}>Verify User</span>}
   open={checkForm}
@@ -355,7 +383,7 @@ const Main: React.FC = () => {
       />
     </Form.Item>
   </Form>
-</Modal>
+</Modal> */}
 
     </div>
   );

@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectChat, updateChat, updateNameRoom, updateRoomDeleted } from '../../redux/Chat/chatSlice';
 import { RootState } from '../../redux/store';
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { useSignalR } from '../../context/SignalRContext';
 import { message } from 'antd';
 import { addMessage } from '../../redux/Chat/chatLatestSlice';
 
@@ -20,9 +19,9 @@ interface MessageData {
 // Định nghĩa kiểu cho props
 interface ChatBarProps {
   data: {
-    idRooms: string;
-    roomName: string;
-    latestMessage?: { content: string };
+    roomId: string;
+    name: string;
+    latestMessage?: string;
     createdDate: string;
     isActive: boolean;
     notify?: boolean;
@@ -36,73 +35,33 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   const dispatch = useDispatch();
   const selectedChatId = useSelector((state: RootState) => state.chat.selectedChatId);
   const room = useSelector((state: RootState) => state.rooms.rooms);
-  const groupName = data.roomName || 'Group Chat'; // Tên nhóm mặc định
-  const isExcedding = data.latestMessage && data.latestMessage.content.length > 35;
+  const groupName = data.name || 'Group Chat'; // Tên nhóm mặc định
+  // const isExcedding = data.latestMessage && data.latestMessage.content.length > 35;
   const groupImg = data.groupLogo; // Lấy ảnh đại diện của nhóm hoặc người dùng đầu tiên
-  const chat = useSelector((state: RootState) => selectedChatId ? state.chatLatest[data.idRooms] : null);
   const storedData = JSON.parse(localStorage.getItem("info") || "{}");
   const userId = storedData.id; 
-  const { connection } = useSignalR();
   const checkMessage = useSelector((state: RootState) => state.chat.messages);  
   const [isJoined, setIsJoined] = useState(false); 
   const [users, setUsers] = useState<string[]>([]); 
   const [chatLatest, setChatLatest] = useState<MessageData | null>(null); 
   const [time, setTime] = useState<string>("");
   const dateObject = new Date(time); 
+  const chat = useSelector((state: RootState) => state.chatLatest);
  
    // Giả sử lấy content từ phần tử cuối cùng
   const handleSelect = async () => {
-    dispatch(selectChat(data.idRooms));
-    dispatch(updateNameRoom(data.roomName));
+    dispatch(selectChat(data.roomId));
+    dispatch(updateNameRoom(data.name));
     select(data); // Gọi thêm hàm select từ props (nếu cần)
-
-    if (connection && userId.trim()) {
-      try {
-        await connection.invoke("JoinRoom", data.idRooms, userId);
-        setIsJoined(true);
-        connection.on("ReceiveMessage", (messageData) => {
-          // setMessages((prevMessages) => [...prevMessages, messageData]);
-          // setMessages(checkMessage)
-        
-          dispatch(updateChat(messageData));
-          const newMessage = {
-            content: messageData.content,
-            userId: messageData.userId,
-            sentAt: messageData.sentAt,
-            fileUrl: messageData.fileUrl,
-            roomId: messageData.roomId,
-          };
-          dispatch(addMessage(newMessage));      
-        });
-        connection.on("UsersInRoom", (usersInRoom) => {
-          setUsers(usersInRoom);
-        });
-
-        console.log(`Joined Room ${data.idRooms} as ${userId}`);
-      } catch (err) {
-        console.error("Error while joining room: ", err);
-      }
-    } else {
-      console.error("Invalid User ID or connection issue.");
-    }
+    
   };
 
-  // Connect to SignalR
-
- 
-  useEffect(() => {
-    if (connection) {
-      connection.start()
-        .then(() => console.log("SignalR Connected!"))
-        .catch((error) => console.error("SignalR Connection Error: ", error));
-    }
-  }, [connection]);
 
 
   useEffect(() => {
     if (chat && typeof chat === "object") {
-      setChatLatest(chat); // Set chatLatest với đối tượng chat
-      setTime(chat.sentAt); // Lấy thời gian từ chat
+      setChatLatest(chat[data.roomId])  
+      console.log("chatLatest", chat)
     }
   }, [chat]);
   
@@ -110,7 +69,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
 
   return (
     <div
-      style={{ backgroundColor: data.idRooms === selectedChatId ? '#F3F4F6' : undefined }} // Sử dụng selectedChatId từ Redux
+      style={{ backgroundColor: data.roomId === selectedChatId ? '#F3F4F6' : undefined }} // Sử dụng selectedChatId từ Redux
       onClick={handleSelect}
       className="flex flex-row items-center justify-between rounded-md cursor-pointer mx-[2%] my-[5%] hover:bg-gray-100 px-[5%] py-[2%]"
     >
@@ -127,7 +86,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
           <div className="font-bold font-Roboto text-sm">{groupName}</div>
           <div className="text-xs text-[#979797]">
            {chatLatest?.content} 
-            {isExcedding ? '.....' : ''}
+            {/* {isExcedding ? '.....' : ''} */}
           </div>
         </div>
       </div>

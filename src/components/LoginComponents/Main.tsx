@@ -19,12 +19,12 @@ export default function Main() {
 
 
   const submit = useSubmit();
-  const [loginData, setloginData] = useState({ email: '', password: '' });
+  const [loginData, setloginData] = useState({ username: '', password: '' });
   const [submitting, setSubmiting] = useState(false)
   const [showPassword, setShowPassword] = useState(false);
-  const [hide, setHide] = useState(false); 
-  const [currentPage, setCurrentPage] = useState(1); 
-  const [username, setUsername] = useState(''); 
+  const [hide, setHide] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [username, setUsername] = useState('');
   const [form] = Form.useForm();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const dispatch = useDispatch();
@@ -41,7 +41,7 @@ export default function Main() {
 
   const getEmail = async (values: any) => {
     try {
-      setUsername(values.email); 
+      setUsername(values.email);
       const response = await axiosClient.post('/api/auth/forgot-password', values);
       if (response.status === 200) {
         message.success('Email sent');
@@ -79,38 +79,27 @@ export default function Main() {
 
 
   const checkLogin = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      message.error('No token found, please login again.');
-      window.location.href = '/login';    // Redirect to login page if no token found
+    const user = localStorage.getItem('info');
+    if (!user) {
+      message.error('No user found, please login again.');
       return;
     }
     try {
-      const decoded = jwtDecode(token);
-      if (decoded) {
-        console.log("payload", decoded);
-        if (decoded.role === "user") {
-          message.success('Login success');
-          window.location.href = '/home/message';  
-          // window.location.href = '/management/users';  // Redirect to users management page
-        }
-        else if (decoded.role === "mod") {
-          message.success('Login success');
-          window.location.href = '/home';  
-        }
-        else
-        {
-          message.success('Login success');
-          window.location.href = '/home/message';  
-        }
-         
+      const parsedUser = JSON.parse(user);
+      const role = parsedUser.roleId;
+      if(role === 1){
+        window.location.href = '/home/message';
+      }
+      else if(role === 2){  
+        window.location.href = '/home/message';
+      }
+      else if(role === 3){
+        window.location.href = '/home';
+      }
+      else{
+        window.location.href = '/404-page'; // Redirect to 404 page in case of error
       }
 
-      else {
-        message.error('Error');
-        console.log("Login failed no payload");
-
-      }
     } catch (error) {
       console.error("Login failed", error);
       message.error('An error occurred while checking login status');
@@ -118,29 +107,31 @@ export default function Main() {
     }
   };
 
-  
+
   const onFinish = async (values: any) => {
     try {
-      const response = await axiosClient.post('/api/auth/login', values);
+      const response = await axiosClient.post('/auth/login', values);
       if (response.status === 200) {
-        localStorage.setItem('token', response.data.result.accessToken);
+        localStorage.setItem('token', response.data.accessToken);
+        const parsed = JSON.stringify(response.data.findUser);
+        localStorage.setItem('info', parsed);
         message.success('Login success');
-        console.log("Login success", response.data.result.accessToken);
+        console.log("Login success", response.data.accessToken);
 
         checkLogin();
 
-      } else {  
-    
-        
-        const error = response.data.errors?.message || 'Login failed'; 
-        setErrorMessage(error); 
+      } else {
+
+
+        const error = response.data.errors?.message || 'Login failed';
+        setErrorMessage(error);
         message.error(error);
-        console.log("Login failed", response.data.errors[0]); 
+        console.log("Login failed", response.data.errors[0]);
       }
     } catch (error: any) {
       if (error.response && error.response.data && Array.isArray(error.response.data.errors)) {
         const errors = error.response.data.errors;
-        setErrorMessage(errors[0]); 
+        setErrorMessage(errors[0]);
       } else {
         setErrorMessage('An unexpected error occurred');
       }
@@ -173,33 +164,32 @@ export default function Main() {
           layout='vertical'
           onFinish={onFinish}
           onFinishFailed={onFinishFailed}
-          
+
         >
-           <Form.Item
-            label="Email ID"
+          <Form.Item
+            label="User name"
             name="username"
             rules={[
-              { required: true, message: 'Please enter your email!' },
-              { type: 'email', message: 'Please enter a valid email!' },
+              { required: true, message: 'Please enter your user name!' },           
             ]}
           >
-            <Input placeholder="Enter Email Address" />
+            <Input placeholder="Enter your username" />
           </Form.Item>
           <Form.Item
-          name="password"
-          label="Password"
-          rules={[
-            { required: true, message: 'Please enter your password!' },
-            {
-              min: 6,
-              message: 'Password must be at least 6 characters long!',
-            },
-          ]}
-          validateStatus={errorMessage ? 'error' : ''}
-          help={errorMessage}
-        >
-          <Input.Password placeholder="Enter your password" />
-        </Form.Item>
+            name="password"
+            label="Password"
+            rules={[
+              { required: true, message: 'Please enter your password!' },
+              {
+                min: 6,
+                message: 'Password must be at least 6 characters long!',
+              },
+            ]}
+            validateStatus={errorMessage ? 'error' : ''}
+            help={errorMessage}
+          >
+            <Input.Password placeholder="Enter your password" />
+          </Form.Item>
 
           <Form.Item>
             <Button
@@ -242,194 +232,194 @@ export default function Main() {
         </Form>
 
 
-        
+
 
 
       </Paper>
 
 
 
-        <Modal
-    centered
-    title={
-      <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4A90E2' }}>
-        {currentPage === 1 ? 'Forgot Password' : 'Change Password'}
-      </span>
-    }
-    open={hide}
-    okText={
-      <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
-        {currentPage === 1 ? 'Next' : 'Complete'}
-      </span>
-    }
-    cancelText={
-      <span style={{ fontSize: '1rem' }}>
-        {currentPage === 1 ? 'Cancel' : 'Back'}
-      </span>
-    }
-    onOk={() => {
-      form
-        .validateFields()
-        .then(() => {
-          if (currentPage === 1) {
-            form.submit(); // Submit cho form gửi email
-          } else {
-            changePassword(form.getFieldsValue()); // Gửi yêu cầu đổi mật khẩu
-          }
-        })
-        .catch((info) => {
-          console.log('Validation Failed:', info);
-        });
-    }}
-    onCancel={() => {
-      if (currentPage === 2) setCurrentPage(1);
-      else setHide(false);
-    }}
-    bodyStyle={{
-      padding: '24px',
-      borderRadius: '10px',
-      background: 'linear-gradient(135deg, #EAF8FF, #FFFFFF)',
-    }}
-    okButtonProps={{
-      style: {
-        backgroundColor: '#4A90E2',
-        color: '#fff',
-        borderRadius: '8px',
-        padding: '8px 16px',
-        fontWeight: 'bold',
-        border: 'none',
-      },
-    }}
-    cancelButtonProps={{
-      style: {
-        borderRadius: '8px',
-        padding: '8px 16px',
-        fontWeight: 'bold',
-        border: '1px solid #D9D9D9',
-      },
-    }}
-  >
-    {currentPage === 1 ? (
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={getEmail}
-        style={{
-          background: '#ffffff',
+      <Modal
+        centered
+        title={
+          <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4A90E2' }}>
+            {currentPage === 1 ? 'Forgot Password' : 'Change Password'}
+          </span>
+        }
+        open={hide}
+        okText={
+          <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>
+            {currentPage === 1 ? 'Next' : 'Complete'}
+          </span>
+        }
+        cancelText={
+          <span style={{ fontSize: '1rem' }}>
+            {currentPage === 1 ? 'Cancel' : 'Back'}
+          </span>
+        }
+        onOk={() => {
+          form
+            .validateFields()
+            .then(() => {
+              if (currentPage === 1) {
+                form.submit(); // Submit cho form gửi email
+              } else {
+                changePassword(form.getFieldsValue()); // Gửi yêu cầu đổi mật khẩu
+              }
+            })
+            .catch((info) => {
+              console.log('Validation Failed:', info);
+            });
+        }}
+        onCancel={() => {
+          if (currentPage === 2) setCurrentPage(1);
+          else setHide(false);
+        }}
+        bodyStyle={{
+          padding: '24px',
           borderRadius: '10px',
-          padding: '16px',
-          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+          background: 'linear-gradient(135deg, #EAF8FF, #FFFFFF)',
+        }}
+        okButtonProps={{
+          style: {
+            backgroundColor: '#4A90E2',
+            color: '#fff',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontWeight: 'bold',
+            border: 'none',
+          },
+        }}
+        cancelButtonProps={{
+          style: {
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontWeight: 'bold',
+            border: '1px solid #D9D9D9',
+          },
         }}
       >
-        <Form.Item
-          name="email"
-          label={
-            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-              Email
-            </span>
-          }
-          rules={[{ required: true, message: 'Please enter your email!', type: 'email' }]}
-        >
-          <Input
-            placeholder="Enter your email"
+        {currentPage === 1 ? (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={getEmail}
             style={{
-              borderRadius: '8px',
-              padding: '10px',
-              fontSize: '1rem',
+              background: '#ffffff',
+              borderRadius: '10px',
+              padding: '16px',
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
             }}
-          />
-        </Form.Item>
-      </Form>
-    ) : (
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={changePassword}
-        style={{
-          background: '#ffffff',
-          borderRadius: '10px',
-          padding: '16px',
-          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <Form.Item
-          name="token"
-          label={
-            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-              Code
-            </span>
-          }
-          rules={[{ required: true, message: 'Please enter your code!' }]}
-        >
-          <Input
-            placeholder="Enter your code"
+          >
+            <Form.Item
+              name="email"
+              label={
+                <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+                  Email
+                </span>
+              }
+              rules={[{ required: true, message: 'Please enter your email!', type: 'email' }]}
+            >
+              <Input
+                placeholder="Enter your email"
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  fontSize: '1rem',
+                }}
+              />
+            </Form.Item>
+          </Form>
+        ) : (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={changePassword}
             style={{
-              borderRadius: '8px',
-              padding: '10px',
-              fontSize: '1rem',
+              background: '#ffffff',
+              borderRadius: '10px',
+              padding: '16px',
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
             }}
-          />
-        </Form.Item>
+          >
+            <Form.Item
+              name="token"
+              label={
+                <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+                  Code
+                </span>
+              }
+              rules={[{ required: true, message: 'Please enter your code!' }]}
+            >
+              <Input
+                placeholder="Enter your code"
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  fontSize: '1rem',
+                }}
+              />
+            </Form.Item>
 
-        <Form.Item
-          name="email"
-          initialValue={username}
-          style={{ display: 'none' }}
-        >
-          <Input disabled />
-        </Form.Item>
+            <Form.Item
+              name="email"
+              initialValue={username}
+              style={{ display: 'none' }}
+            >
+              <Input disabled />
+            </Form.Item>
 
-        <Form.Item
-          name="password"
-          label={
-            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-              Password
-            </span>
-          }
-          rules={[{ required: true, message: 'Please enter your password!' }]}
-        >
-          <Input.Password
-            placeholder="Enter your password"
-            style={{
-              borderRadius: '8px',
-              padding: '10px',
-              fontSize: '1rem',
-            }}
-          />
-        </Form.Item>
+            <Form.Item
+              name="password"
+              label={
+                <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+                  Password
+                </span>
+              }
+              rules={[{ required: true, message: 'Please enter your password!' }]}
+            >
+              <Input.Password
+                placeholder="Enter your password"
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  fontSize: '1rem',
+                }}
+              />
+            </Form.Item>
 
-        <Form.Item
-          name="passwordConfirm"
-          label={
-            <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
-              Confirm Password
-            </span>
-          }
-          dependencies={['password']}
-          rules={[
-            { required: true, message: 'Please confirm your password!' },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue('password') === value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(new Error('Passwords do not match!'));
-              },
-            }),
-          ]}
-        >
-          <Input.Password
-            placeholder="Confirm your password"
-            style={{
-              borderRadius: '8px',
-              padding: '10px',
-              fontSize: '1rem',
-            }}
-          />
-        </Form.Item>
-      </Form>
-    )}
-  </Modal>
+            <Form.Item
+              name="passwordConfirm"
+              label={
+                <span style={{ fontSize: '1rem', fontWeight: 'bold', color: '#4A90E2' }}>
+                  Confirm Password
+                </span>
+              }
+              dependencies={['password']}
+              rules={[
+                { required: true, message: 'Please confirm your password!' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('Passwords do not match!'));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password
+                placeholder="Confirm your password"
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  fontSize: '1rem',
+                }}
+              />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
 
     </div>
   )

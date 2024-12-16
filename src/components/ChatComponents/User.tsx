@@ -8,11 +8,11 @@ import { motion } from 'framer-motion';
 // Định nghĩa kiểu cho props
 interface UserProps {
   values: {
-    pic: string;
+    avatar: string;
     name: string;
     email: string;
   };
-  add: (values: { pic: string; name: string; email: string }) => void;
+  add: (values: { avatar: string; name: string; email: string }) => void;
 }
 
 export default function User({ values, add }: UserProps) {
@@ -32,7 +32,7 @@ export default function User({ values, add }: UserProps) {
     >
       <Avatar
         alt="User-pic"
-        src={values.pic} // Thêm src để hiện ảnh
+        src={values.avatar} // Thêm src để hiện ảnh
         style={{
           width: '48px',
           height: '48px',

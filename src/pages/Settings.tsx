@@ -16,20 +16,27 @@ export default function Settings() {
   const dispatch = useDispatch();
   const reduxData = useSelector((state: RootState) => state.user.userInfo);
   const storedData = JSON.parse(localStorage.getItem('info') || '{}');
-  const [name, setName] = useState(storedData.name);
-  const [email, setEmail] = useState(storedData.userName);
+  const [name, setName] = useState(storedData.fullname);
+  const [email, setEmail] = useState(storedData.email);
   const [phoneNumber, setPhoneNumber] = useState(storedData.phoneNumber);
   const [clicked, setClicked] = useState(false);
+  const idUser = storedData.id;
   const isFirstRender = useRef(true);
 
 
   useEffect(() => {
-    if (reduxData) {
-      setName(reduxData.name);
-      setPhoneNumber(reduxData.phoneNumber);
+    // Bỏ qua lần render đầu tiên
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }, [reduxData]); // Chỉ chạy khi reduxData thay đổi
-
+    
+    // Nếu có dữ liệu từ redux, cập nhật lại state
+    if (reduxData) {
+      setName(reduxData.fullname || '');  // Nếu fullname là null hoặc undefined, gán giá trị mặc định là ''
+      setPhoneNumber(reduxData.phoneNumber || '');  // Tương tự với phoneNumber
+    }
+  }, [reduxData]); 
   
 
   const updateHandler = () => {
@@ -40,21 +47,23 @@ export default function Settings() {
       setClicked(false);
     }, 1000);
 
-    const formData = new FormData();
+    // const formData = new FormData();
     const token = localStorage.getItem("token");
-    if (name) formData.append("Name", name);
-    if (phoneNumber) formData.append("phoneNumber", phoneNumber);
+    const data = {
+      fullName: name,
+      email: email,
+      phoneNumber: phoneNumber,
+    };
 
     const updateData = async () => {
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
         },
       };
-      const response = await axiosClient.put("/api/user/change-profile", formData, config);
+      const response = await axiosClient.put(`user/auth/change-profile/${idUser}`, data, config);
       if (response.status === 200) {
-        dispatch(setUserInfo(response.data.result));
+        dispatch(setUserInfo(response.data.user));
         notification.success({
           message: 'Successfully saved',
           description: 'Your data has been saved successfully.',
