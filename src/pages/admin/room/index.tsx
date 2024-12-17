@@ -203,7 +203,7 @@ export default function Rooms({ }: Props) {
     ];
 
     return (
-        <div style={{ padding: 36, marginTop: 50 }}>
+        <div style={{ padding: 36, marginTop: 10 }}>
             <Card title='Create new room' style={{ width: '100%' }}>
                 <Form form={createForm} name='create-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ name: '', description: '' }} onFinish={onFinish}>
                     <Form.Item<FieldType>
@@ -246,7 +246,7 @@ export default function Rooms({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36, maxHeight: 450, overflow: "auto" }}>
+            <Card title='List of rooms' style={{ width: '100%', marginTop: 36, maxHeight: 300, overflow: "auto" }}>
                 <Table dataSource={rooms} columns={columns} />
             </Card>
 

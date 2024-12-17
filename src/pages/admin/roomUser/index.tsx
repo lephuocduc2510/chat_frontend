@@ -267,7 +267,7 @@ export default function RoomsUser({ }: Props) {
     ];
 
     return (
-        <div style={{ padding: 36, marginTop: 50 }}>
+        <div style={{ padding: 36, marginTop: 10 }}>
             <Card title='Add new user to room' style={{ width: '100%' }}>
                 <Form form={createForm} name='create-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ name: '', description: '' }} onFinish={handleAddUser}>
                     <Form.Item<FieldType>
@@ -301,9 +301,21 @@ export default function RoomsUser({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 }}>
+            <Card title='List users in room' style={{ width: '100%', marginTop: 36, maxHeight: 400, overflow: "auto"}}>
                 <Table dataSource={listUser} columns={columns} />
                 <Form.Item<FieldType> wrapperCol={{ offset: 8, span: 16 }}>
+                <Button
+                        
+                        className='me-5'
+                        type="primary"
+                        htmlType="button"
+                        onClick={()=>{
+                            window.location.href = `/admin/rooms`;
+                        }}
+                    >
+                        Back to rooms
+                    </Button>
+
                     <Button
                         danger
                         disabled={selectedRowKeys.length === 0}
@@ -313,6 +325,7 @@ export default function RoomsUser({ }: Props) {
                     >
                         Delete user
                     </Button>
+                    
                 </Form.Item>
             </Card>
 
