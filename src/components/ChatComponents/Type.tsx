@@ -17,6 +17,7 @@ type ChatMessage = {
   fileUrl: string;
   sentAt: string;
   roomId: string;
+  avatar: string;
 };
 
 export default function Type() {
@@ -41,6 +42,7 @@ export default function Type() {
         roomId: idRoom,
         idUser: storedData.id,
         nameUser: storedData.fullname,
+        avatar: storedData.avatar,
         message: content,
         timestamp: new Date().toLocaleTimeString(),
 
@@ -54,6 +56,7 @@ export default function Type() {
       fileUrl: fileUrl || "",
       sentAt: new Date().toISOString(),
       roomId: idRoom,
+      avatar: storedData.avatar,
     };
     dispatch(addMessage(messageData)); // Add message to chat list
 

@@ -1,20 +1,22 @@
 import React from "react";
 import { Avatar } from "@mui/material";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
-import groupLogo from '../../assets/images/group.png';
+import groupLogo2 from '../../assets/images/group.png';
 import { useSelector } from "react-redux";
 
 // Xoá activeChat khỏi props
 interface ChatTitleProps {
   openChatModel: () => void;
   idRooms: string;
+  groupLogo: string;
   roomName: string;
 }
 
-const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms, roomName }) => {
+const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms, roomName, groupLogo }) => {
 
 
   const idRoom = useSelector((state: any) => state.chat.selectedChatId);
+ 
 
 
   if ( idRoom === null || idRoom === '') return <></>;
@@ -24,7 +26,7 @@ const ChatTitle: React.FC<ChatTitleProps> = ({ openChatModel,  idRooms, roomName
       <div className="flex flex-row items-center">
         <Avatar
           alt="Group Logo"
-          src={groupLogo}
+          src={groupLogo ? groupLogo : groupLogo2}
           style={{
             width: '48px',
             height: '48px',

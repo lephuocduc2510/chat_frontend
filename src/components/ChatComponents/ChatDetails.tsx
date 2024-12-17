@@ -47,8 +47,9 @@ interface ChatDetailsProps {
 
 interface User {
   id: string;
+  userId: string;
   fullname: string;
-  imageUrl: string;
+  avatar: string;
   email: string;
   roomId: string;
 }
@@ -185,6 +186,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
     };
     const response = await axiosClient.get(`/rooms-user/room/${idRoom}`, config);
     const user = response.data.result;
+    console.log("User in room:", user);
     setUsers(user);
   };
   //////////////////// Remove user ///////////////////////
@@ -200,6 +202,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
       idRoom: idRoom,
       idUser
     };
+    console.log("Data:", data);
     const response = await axiosClient.delete("/rooms-user", { data, ...config });
     if (response.status === 200) {
       getUser();
@@ -293,11 +296,11 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
               <div className="mt-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg shadow-inner bg-gray-50">
                 {users.length ? (
                   users.map((user) => (
-                    <div key={user.id} className="px-4 py-2 hover:bg-blue-100">
+                    <div key={user.userId} className="px-4 py-2 hover:bg-blue-100">
                       <GroupUserDetails
                         values={{
-                          id: user.id,
-                          avatar: user.imageUrl,
+                          id: user.userId,
+                          avatar: user.avatar,
                           name: user.fullname,
                           email: user.email,
                           role: "",

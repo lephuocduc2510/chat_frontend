@@ -8,7 +8,8 @@ import { axiosClient } from "../../libraries/axiosClient";
 import 'antd/dist/reset.css';
 import { useRoomContext } from "../../context/RoomContext";
 import { useAppDispatch } from "../../redux/User/hook";
-import { setIsCreatingRoomm } from "../../redux/Chat/chatSlice";
+import { selectChat, setIsCreatingRoomm } from "../../redux/Chat/chatSlice";
+import { UploadFileOutlined } from "@mui/icons-material";
 
 
 interface User {
@@ -22,6 +23,7 @@ interface FormData {
   name: string;
   friends: [];
   description: string,
+
 }
 
 interface BasicModalProps {
@@ -57,8 +59,25 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
   const [searchTerm, setSearchTerm] = React.useState(""); // Từ khóa tìm kiếm
   const [checkSent, setCheckSent] = React.useState(false);
   const isFirstRender = React.useRef(true); // Biến đánh dấu lần render đầu tiên
-  const { isCreatingRoom, setIsCreatingRoom } = useRoomContext(); 
+  const { isCreatingRoom, setIsCreatingRoom } = useRoomContext();
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
   const dispatch = useAppDispatch();
+
+
+
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string); // Lưu đường dẫn hình ảnh xem trước
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Hàm xử lý khi input thay đổi
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -88,18 +107,29 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
 
   // Lọc người dùng khi nhập vào ô tìm kiếm
   React.useEffect(() => {
-    if(searchTerm === "") {
-      return ;
+    if (!searchTerm) {
+      return;
     }
-    const lowerSearchTerm = searchTerm.toLowerCase();
+
+    const lowerSearchTerm = searchTerm?.toLowerCase();
+
     setFilteredUsers(
-      users.filter(
-        (user) =>
-          !groupUsers.find((groupUser) => groupUser.id === user.id) &&
-          user.fullname.toLowerCase().includes(lowerSearchTerm)
-      )
+      users.filter((user) => {
+        // Kiểm tra user và user.fullname không bị null hoặc undefined
+        if (!user || !user.fullname) {
+          return false;
+        }
+
+        const isNotInGroup = !groupUsers.find(
+          (groupUser) => groupUser?.id === user.id
+        );
+
+        // Chỉ so sánh fullname nếu searchTerm và fullname hợp lệ
+        return isNotInGroup && user.fullname.toLowerCase().includes(lowerSearchTerm);
+      })
     );
   }, [searchTerm, users, groupUsers]);
+
 
 
   React.useEffect(() => {
@@ -107,17 +137,17 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
       isFirstRender.current = false; // Đánh dấu là đã qua lần render đầu tiên
       return;
     }
-  
+
     if (idRoom) {
       addUsersToRoom();
       //reset input and groupUsers
       setGroupUsers([]);
-      setFormData({ name: "", friends: [], description: "", });
+      setFormData({ name: "", friends: [], description: "" });
 
     }
   }, [idRoom, checkSent]);
 
-   
+
 
   const HandleCreateRoom = async () => {
     // setIsCreatingRoom(true);
@@ -136,10 +166,29 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     };
     const response = await axiosClient.post("/rooms", body, config);
     if (response.status === 200) {
-      setIdRoom(response.data.id);
       handleClose();
       setCheckSent(false);
+      setIdRoom(response.data.id);
       // setIsCreatingRoom(false);
+      const idRoom = response.data.id;
+      if (selectedImage) {
+      const updateLogo = async () => {
+        const formDataLogo = new FormData();
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        };
+       formDataLogo.append("logo", selectedImage);
+        console.log("Form data logo: ", formDataLogo);
+        const logoResponse = await axiosClient.post(`/rooms/upload-logo/${idRoom}`, formDataLogo,config);
+        if (logoResponse.status === 200) {
+          console.log("Upload logo successfully");
+        }
+      }
+      await updateLogo();
+      }
     }
     else {
       // setIsCreatingRoom(false);
@@ -165,12 +214,13 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
 
     };
     console.log("Data: ", data);
-    const response= await axiosClient.post("/rooms-user", data, config);
+    const response = await axiosClient.post("/rooms-user", data, config);
     if (response.status === 200) {
       console.log("Add user to room successfully");
+      dispatch(selectChat(idRoom));
     }
 
-   
+
   }
 
 
@@ -206,7 +256,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
             onChange={handleChange}
             className="text-lg h-[16%] w-[100%] mt-5 font-thin px-1 py-2 outline-none bg-[#F6F8FC]"
           />
-         
+
           <textarea
             name="description"
             spellCheck="false"
@@ -216,6 +266,36 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
             className="text-lg h-[16%] w-[100%] px-1 py-2 mt-3 outline-none font-thin bg-[#F6F8FC] resize-none"
             rows={4} // Số dòng hiển thị mặc định
           />
+
+          <div className="relative mt-5">
+            <img
+              src={imagePreview || "https://via.placeholder.com/150"} // Nếu có ảnh thì hiển thị ảnh, không có thì dùng placeholder
+              alt="Avatar"
+              className="w-20 h-20 rounded-full object-cover"
+            />
+          </div>
+
+          {/* upload logo */}
+          {/* File Upload với Icon */}
+          <label htmlFor="file-upload" className="cursor-pointer flex items-center mt-5">
+            <UploadFileOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+            <span className="ml-2 text-gray-600 text-lg">Upload Group Image</span>
+            {/* Input file ẩn */}
+            <input
+              id="file-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </label>
+
+          {/* Hiển thị tên file đã chọn */}
+          {selectedImage && (
+            <p className="text-gray-500 mt-2 text-sm">
+              Selected file: {selectedImage.name}
+            </p>
+          )}
           {/* <div className="w-[100%]">
             <User add={() => { }} values={{ pic: "1", name: "John Doe", email: "john@example.com" }} />
           <Loading  spinning/>
@@ -232,7 +312,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
               className="w-full text-base px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50 mb-4"
             />
             <div className="mb-4">
-              {filteredUsers.length && searchTerm !== ""  ? (
+              {filteredUsers.length && searchTerm !== "" ? (
                 filteredUsers.map((user) => (
                   <User
                     key={user.id}
@@ -252,7 +332,7 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
               users={groupUsers.map((user) => ({
                 id: user.id,
                 name: user.fullname,
-                avatar: user.avatar,  
+                avatar: user.avatar,
               }))}
               remove={removeUserFromGroup}
             />

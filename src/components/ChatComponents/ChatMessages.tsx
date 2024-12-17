@@ -95,7 +95,7 @@ export default function ChatMessages() {
       socket.on('server-message', (data) => {
         if (data.type === 'chat' && data.roomId === selectedChat) {
           console.log('Message matches room', data);
-          saveMessage(data.roomId, data.idUser, data.message, data.nameUser, data.timestamp);
+          saveMessage(data.roomId, data.idUser, data.message, data.nameUser, data.timestamp, data.avatar);
           // setMessages((prev) => [...prev, data]);    
         }
       });
@@ -110,7 +110,7 @@ export default function ChatMessages() {
 
 
   // save message
-  const saveMessage = (roomId: string, userId: string, messageContent: string, nameUser: string, timestamp: string) => {
+  const saveMessage = (roomId: string, userId: string, messageContent: string, nameUser: string, timestamp: string, avatar: string) => {
     setMessages(prevMessages => [
       ...prevMessages,
       {
@@ -119,7 +119,8 @@ export default function ChatMessages() {
         senderId: userId,
         content: messageContent,
         nameUser: nameUser,
-        timestamp
+        timestamp,
+        avatar
       }
     ]);
     console.log('Message saved:', messageContent);

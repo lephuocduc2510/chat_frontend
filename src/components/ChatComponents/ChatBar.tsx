@@ -7,6 +7,8 @@ import { RootState } from '../../redux/store';
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { message } from 'antd';
 import { addMessage } from '../../redux/Chat/chatLatestSlice';
+import logoGroup from '../../assets/images/group.png';
+import { updateLogo, updateRoom } from '../../redux/Chat/roomSlice';
 
 interface MessageData {
   content: string;
@@ -48,10 +50,11 @@ export default function ChatBar({ data, select }: ChatBarProps) {
   const dateObject = new Date(time); 
   const chat = useSelector((state: RootState) => state.chatLatest);
  
-   // Giả sử lấy content từ phần tử cuối cùng
+   
   const handleSelect = async () => {
     dispatch(selectChat(data.roomId));
     dispatch(updateNameRoom(data.name));
+    dispatch(updateLogo(groupImg || ''));
     select(data); // Gọi thêm hàm select từ props (nếu cần)
     
   };
@@ -80,7 +83,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
             width: '48px', // Default width
             height: '48px', // Default height
           }}
-          src={groupImg} // Luôn sử dụng groupLogo
+          src={groupImg || logoGroup} // Luôn sử dụng groupLogo
         />
         <div className="flex flex-col ml-2">
           <div className="font-bold font-Roboto text-sm">{groupName}</div>

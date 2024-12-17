@@ -3,10 +3,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Room {
   rooms: string;
+  groupLogo?: string;
 }
 
 const initialState: Room = {
   rooms: '',
+  groupLogo: ''
 };
 
 const roomSlice = createSlice({
@@ -21,8 +23,12 @@ const roomSlice = createSlice({
     updateRoom: (state, action: PayloadAction<string>) => {
       state.rooms = action.payload; // hoặc tùy chỉnh logic cập nhật theo cách bạn muốn
     },
+
+    updateLogo: (state, action: PayloadAction<string>) => {
+      state.groupLogo = action.payload;
+    }
   },
 });
 
-export const { setRooms, updateRoom } = roomSlice.actions;
+export const { setRooms, updateRoom, updateLogo} = roomSlice.actions;
 export default roomSlice.reducer;

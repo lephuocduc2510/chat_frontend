@@ -19,6 +19,7 @@ import { useAppDispatch } from "../redux/User/hook";
 import { addMessage } from "../redux/Chat/chatLatestSlice";
 import { updateRoom } from "../redux/Chat/roomSlice";
 import { SocketProvider, useSocket } from "../context/SocketContext";
+import { avatarClasses } from "@mui/material";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -60,6 +61,7 @@ const HomeChat: React.FC = () => {
   const roomIdDeleted = useSelector((state: RootState) => state.chat.roomDelete) || "";
   const roomId = useSelector((state: RootState) => state.chat.selectedChatId) || "";
   const roomName = useSelector((state: RootState) => state.chat.nameRoom) || "";
+  const groupLogo = useSelector((state: RootState) => state.rooms.groupLogo) || "";
   const checkCreateRoom = useSelector((state: RootState) => state.chat.isCreatingRoom);
   const userId = JSON.parse(localStorage.getItem("info") || "{}").id;
   const user = JSON.parse(localStorage.getItem("info") || "{}");
@@ -81,6 +83,7 @@ const HomeChat: React.FC = () => {
             fileUrl: data.fileUrl,
             sentAt: data.timeStamp,
             roomId: data.roomId,
+            avatar: data.avatar,
           };
           dispatch(addMessage(newMessage));
         }
@@ -140,7 +143,7 @@ const HomeChat: React.FC = () => {
       <ChatDetails closeChat={() => setChatModel(false)} chatModel={chatModel} />
       <TopBar createGroup={handleOpen} />
       <div className="flex flex-row items-center border-[1px] border-[#f5f5f5]">
-        <ChatTitle openChatModel={() => setChatModel(true)} idRooms={roomId} roomName={roomName} />
+        <ChatTitle openChatModel={() => setChatModel(true)} idRooms={roomId} roomName={roomName} groupLogo={groupLogo} />
       </div>
       <div className="border-[1px] overflow-y-scroll no-scrollbar border-[#f5f5f5]">
         {isLoading && <Loading />}
