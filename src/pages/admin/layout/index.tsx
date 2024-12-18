@@ -8,6 +8,8 @@ import Title from '../../../components/ChatComponents/Title';
 import AdminMenu from '../../../components/RootComponents/AdminMenu';
 import UserCard from '../../../components/RootComponents/UserCard';
 import { axiosClient } from '../../../libraries/axiosClient';
+import store from '../../../redux/store';
+import { setUserInfo } from '../../../redux/User/userSlice';
 
 // Định nghĩa kiểu dữ liệu cho `data` trả về từ loader
 interface User {
@@ -58,30 +60,23 @@ interface LoaderArgs {
 export async function loader({ request }: LoaderArgs) {
 
 
-  const cookie = localStorage.getItem('token');
-  const config = {
-    headers: { Authorization: `Bearer ${cookie}` },
-  };
-
-  if (cookie === null) {
-    return redirect('/login');
-  }
-  const role = JSON.parse(atob(cookie.split('.')[1])).role;
-  console.log(role);
-  if (role !== 'admin') {
-    return redirect('/404');
-  }
-
-  const username = JSON.parse(atob(cookie.split('.')[1])).unique_name;
-
-  const response = await axiosClient.get(`/api/user/${username}`, config);
-  const user = response.data.result;
-
-  const parsed = JSON.stringify(user);
-  localStorage.setItem('info', parsed);
-  console.log(parsed);
-
-  return user;
+  const tokken = localStorage.getItem('token');
+    const config = {
+      headers: {
+        Authorization: `Bearer ${tokken}`,
+        'Content-Type': 'application/json',
+  
+      },
+    };
+   
+    const response = await axiosClient.get("/user/auth/verify", config);
+    if (response.status !== 200) {
+      return redirect('/404');
+    }
+    const user = response.data;
+    localStorage.setItem('info', JSON.stringify(user));
+    store.dispatch(setUserInfo(user));
+    return user;
 
   // Render lại trang khi có thay đổi trong localStorage
 

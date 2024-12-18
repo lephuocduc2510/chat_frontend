@@ -44,7 +44,7 @@ export default function RoomsUser({ }: Props) {
         try {
 
             const reponse = await axiosClient.get('/api/user', config);
-            const username = reponse.data.result;
+            const username = reponse.data;
             setUsers(username);
         }
 
@@ -68,7 +68,7 @@ export default function RoomsUser({ }: Props) {
         try {
 
             const response = await axiosClient.get(`/api/Rooms-User/${idRooms}`, config);
-            setListUser(response.data.result);
+            setListUser(response.data);
         } catch (error) {
             console.log('Error:', error);
         }
