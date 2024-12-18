@@ -5,18 +5,20 @@ import Password from 'antd/es/input/Password';
 import { axiosClient } from '../../../libraries/axiosClient';
 import TextArea from 'antd/es/input/TextArea';
 import { useNavigate } from 'react-router-dom';
+// import { store } from 'emoji-mart';
 
 
 type Props = {};
 
 type FieldType = {
     id: Int32Array;
-    roomName: string;
-    createdDate: Date;
+    name: string;
+    created_at: Date;
     createdBy: string;
     isActive: Boolean;
     description: string;
     user: string;
+    groupLogo: string;
 
 };
 
@@ -25,7 +27,7 @@ const token = localStorage.getItem('token')
 
 export default function Rooms({ }: Props) {
 
-
+    const user = JSON.parse(localStorage.getItem('info') || '{}');
     const [rooms, setRooms] = React.useState([]);
     const [selectedRoom, setSelectedRoom] = React.useState<any>(null);
     const [createForm] = Form.useForm<FieldType>();
@@ -42,8 +44,9 @@ export default function Rooms({ }: Props) {
 
         try {
 
-            const response = await axiosClient.get('/api/rooms', config);
-            setRooms(response.data.result);
+            const response = await axiosClient.get('/rooms', config);
+            console.log('Fetch rooms successfully: ', response.data);
+            setRooms(response.data);
         } catch (error) {
             console.log('Error:', error);
         }
@@ -60,8 +63,9 @@ export default function Rooms({ }: Props) {
             },
         };
         try {
+            values.createdBy = user.id;
             console.log('Success:', values);
-            await axiosClient.post('/api/rooms', values, config);
+            await axiosClient.post('/rooms', values, config);
             getRooms();
             createForm.resetFields();
         } catch (error) {
@@ -78,7 +82,7 @@ export default function Rooms({ }: Props) {
         };
         try {
             console.log('Success:', id);
-            await axiosClient.delete(`/api/rooms/${id}`, config);
+            await axiosClient.delete(`/rooms/${id}`, config);
             getRooms();
             message.success('user deleted successfully!');
         } catch (error) {
@@ -89,10 +93,10 @@ export default function Rooms({ }: Props) {
     const onUpdate = async (values: any) => {
          
          const data = {
-            idRooms: selectedRoom.idRooms,
-            roomName: values.roomName,
+            id : selectedRoom.id,
+            name: values.name,
             description: values.description,
-            isActive: selectedRoom.isActive
+
         };
         const config = {
             headers: {
@@ -101,7 +105,7 @@ export default function Rooms({ }: Props) {
         };
         try {
             console.log('Success:', values);
-            await axiosClient.put(`/api/rooms/${selectedRoom.idRooms}`, data, config);
+            await axiosClient.patch(`/rooms/${selectedRoom.id}`, data, config);
             getRooms();
             setSelectedRoom(null);
             message.success('user updated successfully!');
@@ -120,19 +124,12 @@ export default function Rooms({ }: Props) {
         },
         {
             title: 'Room Name',
-            dataIndex: 'roomName',
-            key: 'roomName',
+            dataIndex: 'name',
+            key: 'name',
             width: '1%',
         },
 
 
-
-        {
-            title: 'Status',
-            dataIndex: 'isActive',
-            key: 'isActive',
-            width: '1%',
-        },
 
         {
             title: 'Description',
@@ -142,8 +139,8 @@ export default function Rooms({ }: Props) {
         },
         {
             title: 'Created Date',
-            dataIndex: 'createdDate',
-            key: 'createdDate',
+            dataIndex: 'created_at',
+            key: 'created_at',
             width: '1%',
         },
         {
@@ -177,7 +174,7 @@ export default function Rooms({ }: Props) {
                             title="Delete the user"
                             description="Are you sure to delete this user?"
                             onConfirm={() => {
-                                onDelete(record.idRooms);
+                                onDelete(record.id);
                             }}
                         >
                             <Button type="primary" danger icon={<DeleteOutlined />} />
@@ -188,7 +185,7 @@ export default function Rooms({ }: Props) {
                             type="default"
                             icon={<EyeOutlined />} // Icon "xem chi tiết"
                             onClick={() => {
-                                navigate(`/admin/rooms/${record.idRooms}`);
+                                navigate(`/admin/rooms/${record.id}`);
                             }}
                         />
                     </Space>
@@ -199,12 +196,12 @@ export default function Rooms({ }: Props) {
     ];
 
     return (
-        <div style={{ padding: 36, marginTop: 50 }}>
+        <div style={{ padding: 36, marginTop: 0 }}>
             <Card title='Create new room' style={{ width: '100%' }}>
                 <Form form={createForm} name='create-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ name: '', description: '' }} onFinish={onFinish}>
                     <Form.Item<FieldType>
                         label='Room Name'
-                        name='roomName'
+                        name='name'
                         rules={[{ required: true, message: 'Please input room name!' }]}
                         hasFeedback
 
@@ -242,7 +239,7 @@ export default function Rooms({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 }}>
+            <Card title='List of users' style={{ width: '100%', marginTop: 36,  maxHeight:300, overflow:'auto' }}>
                 <Table dataSource={rooms} columns={columns} />
             </Card>
 
@@ -266,7 +263,7 @@ export default function Rooms({ }: Props) {
                 <Form form={updateForm} name='update-room' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ name: '', description: '' }} onFinish={onUpdate}>
                     <Form.Item<FieldType>
                         label='Room Name'
-                        name='roomName'
+                        name='name'
                         rules={[{ required: true, message: 'Please input room name!' }]}
                         hasFeedback
 

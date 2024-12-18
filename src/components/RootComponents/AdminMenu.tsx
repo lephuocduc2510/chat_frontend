@@ -9,8 +9,8 @@ export default function AdminMenu() {
       <div className='w-[80%]'>
       <Item val={1} to='users' text='User'></Item>
       <Item val={0} to='rooms' text='Room'></Item>
-      <Item val={3} to='roomUser' text='Settings'></Item>
-      <Item val={2} to='profile' text='Profile'></Item>
+      {/* <Item val={3} to='roomUser' text='Settings'></Item>
+      <Item val={2} to='profile' text='Profile'></Item> */}
       </div>
     </div>
   );
