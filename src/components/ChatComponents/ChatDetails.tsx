@@ -220,8 +220,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    const response = await axiosClient.delete(`/api/rooms/${idRoom}`, config);
-    if (response.status === 204) {
+    const response = await axiosClient.delete(`/rooms/${idRoom}`, config);
+    if (response.status === 200) {
       notify("Chat deleted successfully");
       closeModal();
       closeModelHandler();
@@ -397,13 +397,18 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatModel, closeChat }) => {
 
 
             {/* Xoá phòng chat */}
-            {isMod ?
+            {/* {isMod ?
               (<button className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg" onClick={openModal}>
 
                 <DeleteIcon className="mr-2"></DeleteIcon>
                 Delete Chat
               </button>) : null
-            }
+            } */}
+            <button className="bg-[#EF5350] text-white text-lg ml-2 px-2 py-1.5 mt-4 rounded-lg" onClick={openModal}>
+
+              <DeleteIcon className="mr-2"></DeleteIcon>
+              Delete Chat
+            </button>
             <Modal
               open={isModalConfirm}
               onClose={closeModal}

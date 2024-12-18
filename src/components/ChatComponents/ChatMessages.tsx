@@ -8,9 +8,7 @@ import CircularLoading from "./CircularLoading";
 import EmptyMessages from "./EmptyMessages";
 import { format } from 'date-fns';
 import { isToday, isYesterday } from 'date-fns';
-import { FaThumbtack, FaTrash } from 'react-icons/fa';
-import { FaThumbtackSlash } from "react-icons/fa6";
-import { Popconfirm, message } from "antd";
+
 import { useSocket } from "../../context/SocketContext";
 
 // Định nghĩa kiểu Message
@@ -203,24 +201,7 @@ export default function ChatMessages() {
     setShowNewMessageAlert(false);
   };
 
-  const handleDeleteMessage = async (messageId: any) => {
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
 
-      await axiosClient.delete(`/api/Messages/${messageId}`, config);
-      setMessages((prevMessages) =>
-        prevMessages.filter((message) => message._id !== messageId.toString())
-      );
-      message.success("Xóa tin nhắn thành công!");
-    } catch (error) {
-      message.error("Có lỗi xảy ra khi xóa tin nhắn.");
-      console.error(error);
-    }
-  };
 
 
 
@@ -257,6 +238,7 @@ export default function ChatMessages() {
 
             {isSender ? (
               <SenderMessage
+                id={message._id || ''}
                 time={message.timestamp}
                 content={message.content}
                 isPinned={message.isPinned ?? false}
@@ -264,6 +246,7 @@ export default function ChatMessages() {
             ) : (
               <RecieverMessage
                 key={message._id}
+                id={message._id || ''}
                 name={userName}
                 avatar={userImage}
                 index={index}
@@ -273,51 +256,8 @@ export default function ChatMessages() {
               />
             )}
 
-            {hoveredMessageId === message._id && (
-              <div
-                className="absolute top-1 right-2 cursor-pointer"
-                // onClick={() => handleDeleteMessage(message.messageId)}
-                onClick={() =>
-                  setActiveMessageId(
-                    activeMessageId === message._id ? null : message._id || null
-                  )}
-              >
-
-                &#x22EE;
-              </div>
-            )}
-            {/* Menu chức năng ghim và xóa tin nhắn */}
-            {activeMessageId === message._id && (
-              <div className="absolute top-8 right-4 bg-white shadow-lg rounded-lg border border-gray-200 py-1.5 px-2 z-20">
-                <button
-                  className="flex items-center text-sm text-gray-700 hover:text-blue-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md"
-                  onClick={() => {
-                    // pinMessage(message._id);
-                    setActiveMessageId(null); // Ẩn menu sau khi chọn
-                  }}
-                >
-                  <span className="mr-2">
-                    {message.isPinned ? <FaThumbtackSlash /> : <FaThumbtack />}
-                  </span>
-                  {message.isPinned ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn"}
-                </button>
-
-                <Popconfirm
-                  title="Bạn có chắc chắn muốn xóa tin nhắn này không?"
-                  onConfirm={() => handleDeleteMessage(message._id)}
-                  okText="Xóa"
-                  cancelText="Hủy"
-                  placement="topRight"
-                >
-                  <button className="flex items-center text-sm text-gray-700 hover:text-red-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md">
-                    <span className="mr-2">
-                      <FaTrash />
-                    </span>
-                    Xóa tin nhắn
-                  </button>
-                </Popconfirm>
-              </div>
-            )}
+          
+         
           </div>
         );
       })}

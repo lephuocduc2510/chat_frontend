@@ -8,7 +8,7 @@ import { axiosClient } from "../../libraries/axiosClient";
 import 'antd/dist/reset.css';
 import { useRoomContext } from "../../context/RoomContext";
 import { useAppDispatch } from "../../redux/User/hook";
-import { selectChat, setIsCreatingRoomm } from "../../redux/Chat/chatSlice";
+import { selectChat, setIsCreatingRoomm, updateRoomDeleted } from "../../redux/Chat/chatSlice";
 import { UploadFileOutlined } from "@mui/icons-material";
 
 
@@ -217,7 +217,11 @@ const BasicModal: React.FC<BasicModalProps> = ({ handleClose, open }) => {
     const response = await axiosClient.post("/rooms-user", data, config);
     if (response.status === 200) {
       console.log("Add user to room successfully");
-      dispatch(selectChat(idRoom));
+      setSelectedImage(null);
+      setImagePreview(null);
+      dispatch(updateRoomDeleted(idRoom));
+      setIdRoom("");
+      setGroupUsers([{id: storedData.id, fullname: storedData.fullname, avatar: storedData.avatar, email: storedData.email}]);
     }
 
 
