@@ -239,7 +239,11 @@ export default function Rooms({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36,  maxHeight:300, overflow:'auto' }}>
+            {/* <Card title='List of users' style={{ width: '100%', marginTop: 36,  maxHeight:300, overflow:'auto' }}>
+                <Table dataSource={rooms} columns={columns} />
+            </Card> */}
+            
+            <Card title='List of users' style={{ width: '100%', marginTop: 36,  maxHeight:500, overflow:'auto' }}>
                 <Table dataSource={rooms} columns={columns} />
             </Card>
 

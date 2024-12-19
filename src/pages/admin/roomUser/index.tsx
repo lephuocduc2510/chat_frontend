@@ -213,6 +213,14 @@ export default function RoomsUser({ }: Props) {
             width: '20%',
         },
 
+        
+        {
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+            width: '20%',
+        },
+
         {
             title: 'Phone Number',
             dataIndex: 'phoneNumber',
@@ -246,7 +254,7 @@ export default function RoomsUser({ }: Props) {
                             title="Delete the user"
                             description="Are you sure to delete this user from room?"
                             onConfirm={() => {
-                                onDelete(record.userId);
+                                onDelete([record.userId]);
                             }}
                         >
                             <Button type="primary" danger icon={<DeleteOutlined />} />
@@ -295,7 +303,7 @@ export default function RoomsUser({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 , maxHeight:410, overflow:'auto'}}>
+            <Card title='List of users' style={{ width: '100%', marginTop: 36 , maxHeight:500, overflow:'auto'}}>
                 <Table dataSource={listUser} columns={columns} />
                 <Form.Item<FieldType> wrapperCol={{ offset: 8, span: 16 }}>
                     <Button

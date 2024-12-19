@@ -94,32 +94,34 @@ export default function ChatMessages() {
         console.log('Socket connected');
       });
       socket.on('server-message', (data) => {
-        if (data.type === 'chat' ) {
+        if (data.type === 'chat') {
           console.log('Message matches room', data);
           saveMessage(data.roomId, data.idUser, data.message, data.nameUser, data.timestamp, data.avatar, data._id);
           // setMessages((prev) => [...prev, data]);    
           const newMessage = {
-                      userId: data.idUser,
-                      content: data.message,
-                      fileUrl: data.fileUrl,
-                      sentAt: data.timeStamp,
-                      roomId: data.roomId,
-                      avatar: data.avatar,
-                      nameUser: data.nameUser,
-                    };
-                    dispatch(addMessage(newMessage));
-                
+            userId: data.idUser,
+            content: data.message,
+            fileUrl: data.fileUrl,
+            sentAt: data.timeStamp,
+            roomId: data.roomId,
+            avatar: data.avatar,
+            nameUser: data.nameUser,
+          };
+          dispatch(addMessage(newMessage));
+          setShouldScroll(true);
+          scrollToBottom();
+
         }
         if (data.type === 'update' && data.roomId === selectedChat) {
-           console.log('Message updated:', data._id, data.content);    
-           const newMesaage = {
-              _id: data._id,
-              content: data.content,
-              roomId: data.roomId
-           }
-           dispatch(updateChat(newMesaage));
+          console.log('Message updated:', data._id, data.content);
+          const newMesaage = {
+            _id: data._id,
+            content: data.content,
+            roomId: data.roomId
+          }
+          dispatch(updateChat(newMesaage));
         }
-  
+
         if (data.type === 'delete' && data.roomId === selectedChat) {
           setMessages((prevMessages) => {
             return prevMessages.filter((message) => message._id !== data._id); // Lọc bỏ message đã xóa
@@ -127,14 +129,14 @@ export default function ChatMessages() {
           console.log('Message deleted:', data._id);
         }
       });
-  
+
       // Cleanup
       return () => {
         socket.off('server-message');
       };
     }
   }, [socket, selectedChat]);
-  
+
 
 
 
@@ -213,20 +215,19 @@ export default function ChatMessages() {
 
   // Cuộn xuống khi cần
   useEffect(() => {
-    if (shouldScroll) {
+    if (shouldScroll && containerRef.current) {
       scrollToBottom();
-      setShouldScroll(false); // Reset trạng thái sau khi cuộn
+      setShouldScroll(false);
     }
-  }, [loading]);
+  }, [loading, shouldScroll]);
 
   const isNearBottom = () => {
     if (containerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-      return scrollHeight - scrollTop <= clientHeight + 10;
+      return scrollHeight - scrollTop - clientHeight <= 50; // Tăng khoảng cách 50px cho linh hoạt
     }
     return false;
   };
-
   const handleNewMessageClick = () => {
     scrollToBottom();
     setShowNewMessageAlert(false);

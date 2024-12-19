@@ -94,7 +94,7 @@ export default function Main() {
         window.location.href = '/home/message';
       }
       else if(role === 3){
-        window.location.href = '/home/admin';
+        window.location.href = '/admin';
       }
       else{
         window.location.href = '/404-page'; // Redirect to 404 page in case of error

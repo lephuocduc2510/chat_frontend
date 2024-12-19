@@ -81,6 +81,9 @@ export default function Profile() {
       alert("Are you sure you want to save this picture?");
       setSaved(true);
       dispatch(updateUserAvatar(data.data.avatar));
+      //cập nhật trong localstorage
+      storedData.avatar = data.data.avatar;
+      localStorage.setItem('info', JSON.stringify(storedData));
       console.log("Saved:", avatarUrl);
       notification.success({
         message: 'Successfully saved',

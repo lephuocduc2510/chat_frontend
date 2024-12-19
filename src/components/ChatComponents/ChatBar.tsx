@@ -115,7 +115,7 @@ export default function ChatBar({ data, select }: ChatBarProps) {
     <div className="flex flex-col items-end">
       {/* Thời gian tin nhắn gần nhất */}
       <div className="text-xs max-[800px]:hidden font-medium cursor-pointer text-[#979797]">
-        {chatLatest?.sentAt}
+        {/* {chatLatest?.sentAt} */}
       </div>
       {/* Thông báo nếu có */}
       <div className="mt-1">

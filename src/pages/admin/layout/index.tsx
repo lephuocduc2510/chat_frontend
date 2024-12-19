@@ -10,6 +10,7 @@ import UserCard from '../../../components/RootComponents/UserCard';
 import { axiosClient } from '../../../libraries/axiosClient';
 import store from '../../../redux/store';
 import { setUserInfo } from '../../../redux/User/userSlice';
+import { error } from 'console';
 
 // Định nghĩa kiểu dữ liệu cho `data` trả về từ loader
 interface User {
@@ -61,26 +62,30 @@ export async function loader({ request }: LoaderArgs) {
 
 
   const tokken = localStorage.getItem('token');
-    const config = {
-      headers: {
-        Authorization: `Bearer ${tokken}`,
-        'Content-Type': 'application/json',
-  
-      },
-    };
-   
-    const response = await axiosClient.get("/user/auth/verify", config);
+  const config = {
+    headers: {
+      Authorization: `Bearer ${tokken}`,
+      'Content-Type': 'application/json',
+
+    },
+  };
+  try {
+    const response = await axiosClient.get("/user/auth/verifyAdmin", config);
+    if (response.status === 200) {
+      const user = response.data;
+      localStorage.setItem('info', JSON.stringify(user));
+      store.dispatch(setUserInfo(user));
+      return user;
+    }
+
     if (response.status !== 200) {
       return redirect('/404');
     }
-    const user = response.data;
-    localStorage.setItem('info', JSON.stringify(user));
-    store.dispatch(setUserInfo(user));
-    return user;
-
+  }
+  catch (error) {
+    console.log('Error:', error);
+    return redirect('/404');
+  }
   // Render lại trang khi có thay đổi trong localStorage
-
-
-
 
 }

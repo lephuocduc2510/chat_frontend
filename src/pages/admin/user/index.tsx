@@ -29,7 +29,7 @@ export default function Users({ }: Props) {
     const [selectedUser, setSelectedUser] = React.useState<any>(null);
     const [createForm] = Form.useForm<FieldType>();
     const [updateForm] = Form.useForm<FieldType>();
-    
+
     const getUsers = async () => {
 
         const config = {
@@ -42,7 +42,7 @@ export default function Users({ }: Props) {
 
             const response = await axiosClient.get('/users', config);
             setUsers(response.data);
-            console.log('User data: ',response.data);
+            console.log('User data: ', response.data);
         } catch (error) {
             console.log('Error:', error);
         }
@@ -101,7 +101,7 @@ export default function Users({ }: Props) {
             console.log('Error:', error);
         }
     };
-    
+
     const columns = [
         {
             title: 'STT',
@@ -109,7 +109,7 @@ export default function Users({ }: Props) {
             key: 'id',
             width: '10%',
             render: (_: any, __: any, index: number) => index + 1, // index là chỉ số của hàng (bắt đầu từ 0)
-          },
+        },
         {
             title: 'Username',
             dataIndex: 'username',
@@ -177,7 +177,7 @@ export default function Users({ }: Props) {
     ];
 
     return (
-        <div style={{ padding: 36 , marginTop: 0}}>
+        <div style={{ padding: 36, marginTop: 0 }}>
             <Card title='Create new user' style={{ width: '100%' }}>
                 <Form form={createForm} name='create-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ password: 'Abc123', description: '' }} onFinish={onFinish}>
                     <Form.Item<FieldType>
@@ -207,15 +207,15 @@ export default function Users({ }: Props) {
                         <Input />
                     </Form.Item>
                     <Form.Item<FieldType>
-                        
+
                         label='Password'
                         name='password'
                         rules={[{ required: true, message: 'Please input username!', type: 'string' }]}
                         hasFeedback
-                        style={{display: 'none'}}
+                        style={{ display: 'none' }}
 
                     >
-                        <Input type="password"  />
+                        <Input type="password" />
                     </Form.Item>
                     {/* <Form.Item<FieldType>
                         label="Role"
@@ -231,7 +231,7 @@ export default function Users({ }: Props) {
                     </Form.Item> */}
 
 
-                
+
 
 
 
@@ -245,14 +245,17 @@ export default function Users({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 , maxHeight:300, overflow:'auto'}}>
+            {/* <Card title='List of users' style={{ width: '100%', marginTop: 36 , maxHeight:300, overflow:'auto'}}>
+                <Table dataSource={users} columns={columns} />
+            </Card> */}
+
+            <Card title='List of users' style={{ width: '100%', marginTop: 36 , maxHeight:500, overflow:'auto'}}>
                 <Table dataSource={users} columns={columns} />
             </Card>
 
 
 
-
-             {/* Sửa user */}
+            {/* Sửa user */}
 
             <Modal
                 centered
@@ -271,7 +274,7 @@ export default function Users({ }: Props) {
                         label='Name'
                         name='fullname'
                         rules={[{ required: true, message: 'Please input username!' }]}
-                        
+
                         hasFeedback
 
                     >
@@ -283,10 +286,10 @@ export default function Users({ }: Props) {
                         rules={[{ required: true, type: 'string', message: 'Please input username!' }]}
                         hasFeedback
                     >
-                        <Input  disabled/>
+                        <Input disabled />
                     </Form.Item>
 
-                
+
 
                     <Form.Item<FieldType>
                         label="Role"

@@ -64,6 +64,8 @@ export default function Settings() {
       const response = await axiosClient.put(`user/auth/change-profile/${idUser}`, data, config);
       if (response.status === 200) {
         dispatch(setUserInfo(response.data.user));
+        //đổi dữ liệu vừa cập nhật thành dữ liệu mới nhất trong local storage
+        localStorage.setItem('info', JSON.stringify(response.data.user));
         notification.success({
           message: 'Successfully saved',
           description: 'Your data has been saved successfully.',
