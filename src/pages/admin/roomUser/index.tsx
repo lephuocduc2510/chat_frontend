@@ -28,7 +28,7 @@ export default function RoomsUser({ }: Props) {
 
 
     const [selectedRowKeys, setSelectedRowKeys] = React.useState<any[]>([]);
-    const idRooms = parseInt(id);
+    const idRoom = parseInt(id);
     const [createForm] = Form.useForm<FieldType>();
     const [user, setUsers] = React.useState([]);
     const [listUser, setListUser] = React.useState([]);
@@ -43,8 +43,9 @@ export default function RoomsUser({ }: Props) {
 
         try {
 
-            const reponse = await axiosClient.get('/api/user', config);
-            const username = reponse.data.result;
+            const reponse = await axiosClient.get('/users', config);
+            console.log('Fetch user successfully: ', reponse.data);
+            const username = reponse.data;
             setUsers(username);
         }
 
@@ -67,7 +68,8 @@ export default function RoomsUser({ }: Props) {
 
         try {
 
-            const response = await axiosClient.get(`/api/Rooms-User/${idRooms}`, config);
+            const response = await axiosClient.get(`/rooms-user/room/${idRoom}`, config);
+            console.log('Fetch userRooms successfully: ', response.data.result);
             setListUser(response.data.result);
         } catch (error) {
             console.log('Error:', error);
@@ -82,9 +84,9 @@ export default function RoomsUser({ }: Props) {
 
 
     // Hàm xử lý khi checkbox thay đổi
-    const onSelectChange = (id: number, checked: boolean) => {
+    const onSelectChange = (userId: number, checked: boolean) => {
         setSelectedRowKeys((prev) =>
-            checked ? [...prev, id] : prev.filter((key) => key !== id)
+            checked ? [...prev, userId] : prev.filter((key) => key !== userId)
         );
     };
 
@@ -95,7 +97,7 @@ export default function RoomsUser({ }: Props) {
     const handleAddUser = async (values: any) => {
         const idUser = values.username;
         const data = {
-            idRooms,
+            idRoom,
             idUser,
             "idPerAdd": "string"
         }
@@ -106,7 +108,7 @@ export default function RoomsUser({ }: Props) {
         };
         try {
             console.log('Success:', data);
-            await axiosClient.post('/api/Rooms-User/add-user-in-room', data, config);
+            await axiosClient.post('/rooms-user', data, config);
             getUserInRoom();
             createForm.resetFields();
         } catch (error) {
@@ -116,11 +118,11 @@ export default function RoomsUser({ }: Props) {
 
 
     // Hàm xử lý khi nhấn nút xóa
-    const onDelete = async (ids: number[]) => {
+    const onDelete = async (userId: string[]) => {
         // Tạo đối tượng `data` chứa thông tin cần gửi
         const data = {
-            idRooms,
-            idUser: ids, // Gán mảng ID vào đây
+            idRoom,
+            idUser: userId, // Gán mảng ID vào đây
         };
 
         const config = {
@@ -131,7 +133,7 @@ export default function RoomsUser({ }: Props) {
 
         try {
             console.log('Data to send:', data);
-            await axiosClient.delete('/api/Rooms-User/remove-user-out-room', {
+            await axiosClient.delete('/rooms-user', {
                 data, // Gửi dữ liệu trong phần body của request
                 ...config,
             });
@@ -183,8 +185,8 @@ export default function RoomsUser({ }: Props) {
             width: '5%',
             render: (_: any, record: any) => (
                 <Checkbox
-                    checked={selectedRowKeys.includes(record.id)}
-                    onChange={(e) => onSelectChange(record.id, e.target.checked)}
+                    checked={selectedRowKeys.includes(record.userId)}
+                    onChange={(e) => onSelectChange(record.userId, e.target.checked)}
                 />
             ),
         },
@@ -196,9 +198,9 @@ export default function RoomsUser({ }: Props) {
             render: (_: any, __: any, index: number) => index + 1, // index là chỉ số của hàng (bắt đầu từ 0)
         },
         {
-            title: 'Name user',
-            dataIndex: 'name',
-            key: 'name',
+            title: 'Name',
+            dataIndex: 'fullname',
+            key: 'fullname',
             width: '15%',
         },
 
@@ -206,8 +208,8 @@ export default function RoomsUser({ }: Props) {
 
         {
             title: 'UserName',
-            dataIndex: 'userName',
-            key: 'userName',
+            dataIndex: 'username',
+            key: 'username',
             width: '20%',
         },
 
@@ -244,7 +246,7 @@ export default function RoomsUser({ }: Props) {
                             title="Delete the user"
                             description="Are you sure to delete this user from room?"
                             onConfirm={() => {
-                                onDelete(record.id);
+                                onDelete(record.userId);
                             }}
                         >
                             <Button type="primary" danger icon={<DeleteOutlined />} />
@@ -259,7 +261,7 @@ export default function RoomsUser({ }: Props) {
     ];
 
     return (
-        <div style={{ padding: 36, marginTop: 50 }}>
+        <div style={{ padding: 36, marginTop: 5 }}>
             <Card title='Add new user to room' style={{ width: '100%' }}>
                 <Form form={createForm} name='create-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ name: '', description: '' }} onFinish={handleAddUser}>
                     <Form.Item<FieldType>
@@ -273,7 +275,7 @@ export default function RoomsUser({ }: Props) {
                             mode="multiple"
                             options={user?.map((item: any) => {
                                 return {
-                                    label: item.userName,
+                                    label: item.email,
                                     value: item.id,
                                 };
                             })}
@@ -293,7 +295,7 @@ export default function RoomsUser({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 }}>
+            <Card title='List of users' style={{ width: '100%', marginTop: 36 , maxHeight:410, overflow:'auto'}}>
                 <Table dataSource={listUser} columns={columns} />
                 <Form.Item<FieldType> wrapperCol={{ offset: 8, span: 16 }}>
                     <Button

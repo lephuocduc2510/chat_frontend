@@ -103,12 +103,16 @@ const router = createBrowserRouter([
       {
         path: "rooms",
         element: <Rooms></Rooms>,
-        children: [
-          {
-            path: ":id",
-            element: <RoomsUser></RoomsUser>
-          }
-        ]
+        // children: [
+        //   {
+        //     path: ":id",
+        //     element: <RoomsUser></RoomsUser>
+        //   }
+        // ]
+      },
+      {
+        path: "rooms/:id",
+        element: <RoomsUser></RoomsUser>
       }
     ]
   },

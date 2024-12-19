@@ -9,9 +9,11 @@ type Props = {};
 
 type FieldType = {
     id: string;
-    userName: string;
-    name: string;
-    role: string;
+    username: string;
+    fullname: string;
+    email: string;
+    roleId: string;
+    password: string;
     emailConfirmed: boolean;
     created_at: string;
     updated_at: string;
@@ -27,7 +29,7 @@ export default function Users({ }: Props) {
     const [selectedUser, setSelectedUser] = React.useState<any>(null);
     const [createForm] = Form.useForm<FieldType>();
     const [updateForm] = Form.useForm<FieldType>();
-
+    
     const getUsers = async () => {
 
         const config = {
@@ -38,8 +40,9 @@ export default function Users({ }: Props) {
 
         try {
 
-            const response = await axiosClient.get('/api/user', config);
-            setUsers(response.data.result);
+            const response = await axiosClient.get('/users', config);
+            setUsers(response.data);
+            console.log('User data: ',response.data);
         } catch (error) {
             console.log('Error:', error);
         }
@@ -57,7 +60,7 @@ export default function Users({ }: Props) {
         };
         try {
             console.log('Success:', values);
-            await axiosClient.post('/api/user', values, config);
+            await axiosClient.post('/users', values, config);
             getUsers();
             createForm.resetFields();
         } catch (error) {
@@ -73,7 +76,7 @@ export default function Users({ }: Props) {
             },
         };
         try {
-            await axiosClient.delete(`/api/user/${id}`, config);
+            await axiosClient.delete(`/users/${id}`, config);
             getUsers();
             message.success('user deleted successfully!');
         } catch (error) {
@@ -88,8 +91,9 @@ export default function Users({ }: Props) {
             },
         };
         try {
-            console.log('Success:', values);
-            await axiosClient.put(`/api/user/${selectedUser.id}`, values, config);
+            console.log('Success update:', values);
+            console.log('Selected User ID:', selectedUser?.id);
+            await axiosClient.patch(`/users/${selectedUser.id}`, values, config);
             getUsers();
             setSelectedUser(null);
             message.success('user updated successfully!');
@@ -97,37 +101,37 @@ export default function Users({ }: Props) {
             console.log('Error:', error);
         }
     };
-
+    
     const columns = [
         {
             title: 'STT',
             dataIndex: 'id', // Không bắt buộc nếu chỉ hiển thị số thứ tự
             key: 'id',
-            width: '20%',
+            width: '10%',
             render: (_: any, __: any, index: number) => index + 1, // index là chỉ số của hàng (bắt đầu từ 0)
           },
         {
             title: 'Username',
-            dataIndex: 'userName',
-            key: 'userName',
+            dataIndex: 'username',
+            key: 'username',
         },
         {
             title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
+            dataIndex: 'fullname',
+            key: 'fullname',
         },
 
 
         {
             title: 'Role',
-            dataIndex: 'role',
-            key: 'role',
+            dataIndex: 'roleId',
+            key: 'roleId',
         },
 
         {
-            title: 'Verified',
-            dataIndex: 'emailConfirmed',
-            key: 'emailConfirmed',
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
         },
         // {
         //     title: 'Created at',
@@ -173,13 +177,13 @@ export default function Users({ }: Props) {
     ];
 
     return (
-        <div style={{ padding: 36 , marginTop: 50}}>
+        <div style={{ padding: 36 , marginTop: 0}}>
             <Card title='Create new user' style={{ width: '100%' }}>
-                <Form form={createForm} name='create-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ name: '', description: '' }} onFinish={onFinish}>
+                <Form form={createForm} name='create-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ password: 'Abc123', description: '' }} onFinish={onFinish}>
                     <Form.Item<FieldType>
                         label='Username'
-                        name='userName'
-                        rules={[{ required: true, message: 'Please input username!', type: 'email' }]}
+                        name='username'
+                        rules={[{ required: true, message: 'Please input username!', type: 'string' }]}
                         hasFeedback
 
                     >
@@ -187,14 +191,33 @@ export default function Users({ }: Props) {
                     </Form.Item>
                     <Form.Item<FieldType>
                         label='Name'
-                        name='name'
+                        name='fullname'
                         rules={[{ required: true, message: 'Please input email!' }]}
                         hasFeedback
                     >
                         <Input />
                     </Form.Item>
-
                     <Form.Item<FieldType>
+                        label='Email'
+                        name='email'
+                        rules={[{ required: true, message: 'Please input username!', type: 'email' }]}
+                        hasFeedback
+
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item<FieldType>
+                        
+                        label='Password'
+                        name='password'
+                        rules={[{ required: true, message: 'Please input username!', type: 'string' }]}
+                        hasFeedback
+                        style={{display: 'none'}}
+
+                    >
+                        <Input type="password"  />
+                    </Form.Item>
+                    {/* <Form.Item<FieldType>
                         label="Role"
                         name="role"
                         rules={[{ required: true, message: 'Please select a role!' }]}
@@ -205,7 +228,7 @@ export default function Users({ }: Props) {
                             <Select.Option value="mod">Mod</Select.Option>
                             <Select.Option value="user">User</Select.Option>
                         </Select>
-                    </Form.Item>
+                    </Form.Item> */}
 
 
                 
@@ -222,7 +245,7 @@ export default function Users({ }: Props) {
             </Card>
 
 
-            <Card title='List of users' style={{ width: '100%', marginTop: 36 }}>
+            <Card title='List of users' style={{ width: '100%', marginTop: 36 , maxHeight:300, overflow:'auto'}}>
                 <Table dataSource={users} columns={columns} />
             </Card>
 
@@ -245,8 +268,8 @@ export default function Users({ }: Props) {
             >
                 <Form form={updateForm} name='update-user' labelCol={{ span: 8 }} wrapperCol={{ span: 16 }} initialValues={{ name: '', description: '' }} onFinish={onUpdate}>
                     <Form.Item<FieldType>
-                        label='name'
-                        name='name'
+                        label='Name'
+                        name='fullname'
                         rules={[{ required: true, message: 'Please input username!' }]}
                         
                         hasFeedback
@@ -256,8 +279,8 @@ export default function Users({ }: Props) {
                     </Form.Item>
                     <Form.Item<FieldType>
                         label='Username'
-                        name='userName'
-                        rules={[{ required: true, type: 'email', message: 'Please input email!' }]}
+                        name='username'
+                        rules={[{ required: true, type: 'string', message: 'Please input username!' }]}
                         hasFeedback
                     >
                         <Input  disabled/>
@@ -267,14 +290,14 @@ export default function Users({ }: Props) {
 
                     <Form.Item<FieldType>
                         label="Role"
-                        name="role"
+                        name="roleId"
                         rules={[{ required: true, message: 'Please select a role!' }]}
                         hasFeedback
                     >
                         <Select>
-                            <Select.Option value="admin">Admin</Select.Option>
-                            <Select.Option value="mod">Mod</Select.Option>
-                            <Select.Option value="user">User</Select.Option>
+                            <Select.Option value="3">Admin</Select.Option>
+                            <Select.Option value="2">Mod</Select.Option>
+                            <Select.Option value="1">User</Select.Option>
                         </Select>
                     </Form.Item>
 
