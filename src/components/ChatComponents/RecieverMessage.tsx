@@ -4,9 +4,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { Avatar } from "@mui/material";
 import Tooltip from "@mui/material/Tooltip";
 import { BsPinAngleFill } from "react-icons/bs";
-import { FaThumbtack, FaTrash } from "react-icons/fa";
+import { FaEdit, FaThumbtack, FaTrash } from "react-icons/fa";
 import { FaThumbtackSlash } from "react-icons/fa6";
 import { Popconfirm, message } from "antd";
+import { axiosClient } from "../../libraries/axiosClient";
+import EditMessageModal from "./EditMessageModal";
+import { set } from "date-fns";
+import { useSocket } from "../../context/SocketContext";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 
 // Định nghĩa kiểu dữ liệu cho props
 interface RecieverMessageProps {
@@ -18,6 +24,7 @@ interface RecieverMessageProps {
   time: string; // Thời gian tin nhắn
   isPinned: boolean; // Kiểm tra tin nhắn đã được ghim hay chưa
   fileUrl?: string; // URL file đính kèm (nếu có)
+  roomId: number; // ID của phòng chat
 }
 
 export default function RecieverMessage({
@@ -28,11 +35,17 @@ export default function RecieverMessage({
   name,
   time,
   isPinned,
-  fileUrl
+  fileUrl,
+  roomId
 }: RecieverMessageProps) {
   const messageTime = time ? time : ""
   const [checkActiveMessageId, setActiveMessageId] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentMessage, setCurrentMessage] = useState<{ id: string; content: string }>({ id: "", content: "" });
+  const [newMessage, setNewMessage] = useState(content);
+  const newMessageRedux = useSelector((state: RootState) => state.messages);
+  const socket = useSocket();
 
   // Xử lý click bên ngoài menu
   useEffect(() => {
@@ -54,15 +67,107 @@ export default function RecieverMessage({
     return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
+  useEffect(() => {
+  
+    if (newMessageRedux) {
+      if (newMessageRedux._id === id) {
+        console.log('dđ:', newMessageRedux);
+        setNewMessage(newMessageRedux.content);
+      }
+    }
+  }, [newMessageRedux, id]);
+
+
+
+  // useEffect(() => {
+  //   if (socket) {
+  //     socket.on('connect', () => {
+  //       console.log('Socket connected');
+  //     });
+  //     socket.on('server-message', (data) => {        
+  //       if (data.type === 'update' && data.roomId === roomId && data._id === id) {
+  //         console.log('Message updated:', data._id, data.content);
+  //         setNewMessage(data.content);
+
+  //       }
+
+
+  //       // if (data.type === 'delete' && data.roomId === roomId && data._id === id) {
+  //       //   console.log('Message updated:', data._id, data.content);
+  //       //   setNewMessage("");
+  //       // }
+  //     });
+
+  //     // Cleanup
+  //     return () => {
+  //       socket.off('server-message');
+  //     };
+  //   }
+  // }, [socket, roomId, id]);
+
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      message.success("Xóa tin nhắn thành công!");
+      const response = await axiosClient.delete(`/messages/messages/${messageId}`);
+      console.log(response);
+      if (response.status !== 200) {
+        message.error("Có lỗi xảy ra khi xóa tin nhắn.");
+        return;
+      }
+      else {
+        message.success("Xóa tin nhắn thành công!");
+        setActiveMessageId(false);
+        if (socket) {
+          socket.emit('client-message', {
+            type: 'delete',
+            _id: id,
+            content: newMessage,
+            roomId: roomId,
+          });
+        }
+      }
     } catch (error) {
       message.error("Có lỗi xảy ra khi xóa tin nhắn.");
     }
   };
 
+
+
+  const handleOpenEditModal = (messageId: string, messageContent: string) => {
+    setCurrentMessage({ id: messageId, content: messageContent }); // Lấy nội dung tin nhắn hiện tại
+    setIsModalOpen(true); // Mở modal
+  };
+
+  const handleSaveEditedMessage = (id: string, newMessage: string) => {
+    console.log("ID tin nhắn:", id);
+    console.log("Nội dung mới:", newMessage);
+    // Thực hiện cập nhật tin nhắn
+    const updateMessage = async () => {
+      try {
+        const response = await axiosClient.patch(`/messages/${id}`, { content: newMessage });
+        console.log(response);
+        if (response.status !== 200) {
+          message.error("Có lỗi xảy ra khi sửa tin nhắn.");
+          return;
+        }
+        setNewMessage(newMessage);
+        message.success("Sửa tin nhắn thành công!");
+        if (socket) {
+          socket.emit('client-message', {
+            type: 'update',
+            _id: id,
+            content: newMessage,
+            roomId: roomId,
+          });
+        }
+      } catch (error) {
+        message.error("Có lỗi xảy ra khi sửa tin nhắn.");
+      }
+    }
+    updateMessage();
+    setIsModalOpen(false);
+    setCurrentMessage({ id: id, content: newMessage });
+  };
 
   return (
     <div className="max-w-[60%]">
@@ -90,7 +195,7 @@ export default function RecieverMessage({
           {/* Tin nhắn */}
           <div className="bg-[#0284C7] relative rounded-tl-lg rounded-tr-lg rounded-bl-lg font-Roboto rounded-br-lg text-white px-3 py-1 shadow-md flex flex-col gap-1">
             {/* Nội dung tin nhắn */}
-            <p className="w-full min-w-[50px] mt-1" style={{ wordWrap: "break-word" }} dangerouslySetInnerHTML={{ __html: content }} />
+            <p className="w-full min-w-[50px] mt-1" style={{ wordWrap: "break-word" }} dangerouslySetInnerHTML={{ __html: newMessage }} />
 
             {/* Hiển thị file nếu có */}
             {fileUrl && (
@@ -101,10 +206,6 @@ export default function RecieverMessage({
               </div>
             )}
 
-            {/* Biểu tượng ghim */}
-            {isPinned && (
-              <BsPinAngleFill className="absolute top-2 right-2 text-yellow-400" size={16} />
-            )}
 
             {/* Thời gian tin nhắn */}
             <p className="text-[10px] text-right text-gray-200 font-light">
@@ -129,32 +230,48 @@ export default function RecieverMessage({
             >
               <button
                 className="flex items-center text-sm text-gray-700 hover:text-blue-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md"
-                onClick={() => setActiveMessageId(false)}
+                onClick={() => {
+                  handleOpenEditModal(id, newMessage)
+                }
+                } // Mở modal chỉnh sửa
               >
                 <span className="mr-2">
-                  {isPinned ? <FaThumbtackSlash /> : <FaThumbtack />}
+                  <FaEdit />
                 </span>
-                {isPinned ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn"}
+                Sửa tin nhắn
               </button>
 
-              <Popconfirm
-                title="Bạn có chắc chắn muốn xóa tin nhắn này không?"
-                onConfirm={() => handleDeleteMessage(id)}
-                okText="Xóa"
-                cancelText="Hủy"
-                placement="topRight"
-              >
-                <button className="flex items-center text-sm text-gray-700 hover:text-red-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md">
-                  <span className="mr-2">
-                    <FaTrash />
-                  </span>
-                  Xóa tin nhắn
-                </button>
-              </Popconfirm>
+              {/*           
+                        <Popconfirm        
+                          title="Bạn có chắc chắn muốn xóa tin nhắn này không?"
+                          onConfirm={() => handleDeleteMessage(id)}
+                          okText="Xóa"
+                          cancelText="Hủy"
+                          placement="topRight"
+                        
+                        > */}
+
+              <button onClick={() => handleDeleteMessage(id)} className="flex items-center text-sm text-gray-700 hover:text-red-600 py-1 px-3 w-full text-left hover:bg-gray-100 rounded-md">
+                <span className="mr-2">
+                  <FaTrash />
+                </span>
+                Xóa tin nhắn
+              </button>
+
+              {/* </Popconfirm> */}
             </div>
           )}
         </div>
       </div>
+
+      {isModalOpen && (
+        <EditMessageModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          message={currentMessage}
+          onSave={handleSaveEditedMessage}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ type ChatMessage = {
   sentAt: string;
   roomId: string; // Phòng nào
   avatar: string;
+  nameUser: string;
 };
 
 interface ChatLatestState {

@@ -5,6 +5,8 @@ import chatReducer from './Chat/chatSlice';
 import avatarReducer from './User/avatarSlice';
 import chatLatest from './Chat/chatLatestSlice';
 import roomReducer  from './Chat/roomSlice';
+import messageReducer from './Chat/chatSliceAction';
+import { message } from "antd";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +15,7 @@ export const store = configureStore({
     chat: chatReducer,
     chatLatest: chatLatest,
     rooms: roomReducer,
+    messages: messageReducer,
   },
 });
 

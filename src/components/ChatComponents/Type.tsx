@@ -11,6 +11,9 @@ import { addMessage } from "../../redux/Chat/chatLatestSlice";
 import { useSocket } from "../../context/SocketContext";
 import { Email } from "@mui/icons-material";
 
+import { v4 as uuidv4 } from 'uuid';
+
+
 type ChatMessage = {
   userId: string;
   content: string;
@@ -18,11 +21,12 @@ type ChatMessage = {
   sentAt: string;
   roomId: string;
   avatar: string;
+  nameUser: string;
 };
 
 export default function Type() {
   const dispatch = useDispatch();
-  const  socket = useSocket();
+  const socket = useSocket();
   const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -49,7 +53,7 @@ export default function Type() {
       });
       console.log("Message sent:", content, idRoom);
     }
-  
+
     const messageData: ChatMessage = {
       userId: storedData.id,
       content,
@@ -57,12 +61,13 @@ export default function Type() {
       sentAt: new Date().toISOString(),
       roomId: idRoom,
       avatar: storedData.avatar,
+      nameUser: storedData.fullname || "",
     };
     dispatch(addMessage(messageData)); // Add message to chat list
 
 
 
- 
+
   };
 
   const handleFileUpload = async () => {
@@ -165,11 +170,11 @@ export default function Type() {
 
       {/* Microphone Icon */}
       <MicIcon
-        sx={{ width: 38, cursor: "pointer" }}
+        sx={{ width: 38, cursor: "pointer", marginRight: 10 }}
         style={{
           position: "absolute",
           top: "50%",
-          left: "7%",
+          left: "4%",
           translate: "-4% -50%",
         }}
         color="info"
@@ -220,16 +225,18 @@ export default function Type() {
       </div>
 
       {/* Textarea */}
-      <div className="bg-gray-100 resize-none font-Roboto box-border px-[6%] flex text-md w-[85%] py-[5px] outline-none h-[50%] rounded-3xl">
+      <div className="bg-gray-100 resize-none font-Roboto box-border px-[4%] flex text-md w-[85%] py-[5px] outline-none h-[50%] rounded-3xl">
         <textarea
           spellCheck="false"
           placeholder="Type a message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="w-full bg-transparent outline-none resize-none"
+          className="w-full bg-transparent outline-none resize-none text-left placeholder:text-left leading-[40px]"  // line-height đã thêm vào
         />
       </div>
+
+
     </div>
   );
 }

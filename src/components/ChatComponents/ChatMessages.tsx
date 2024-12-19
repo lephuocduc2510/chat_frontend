@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import { isToday, isYesterday } from 'date-fns';
 
 import { useSocket } from "../../context/SocketContext";
+import { updateChat } from "../../redux/Chat/chatSliceAction";
+import { addMessage } from "../../redux/Chat/chatLatestSlice";
 
 // Định nghĩa kiểu Message
 interface Message {
@@ -55,6 +57,7 @@ export default function ChatMessages() {
   const [shouldScroll, setShouldScroll] = useState(false);
   const [showNewMessageAlert, setShowNewMessageAlert] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const roomId = useSelector((state: RootState) => state.chat.selectedChatId);
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
 
@@ -91,28 +94,56 @@ export default function ChatMessages() {
         console.log('Socket connected');
       });
       socket.on('server-message', (data) => {
-        if (data.type === 'chat' && data.roomId === selectedChat) {
+        if (data.type === 'chat' ) {
           console.log('Message matches room', data);
-          saveMessage(data.roomId, data.idUser, data.message, data.nameUser, data.timestamp, data.avatar);
+          saveMessage(data.roomId, data.idUser, data.message, data.nameUser, data.timestamp, data.avatar, data._id);
           // setMessages((prev) => [...prev, data]);    
+          const newMessage = {
+                      userId: data.idUser,
+                      content: data.message,
+                      fileUrl: data.fileUrl,
+                      sentAt: data.timeStamp,
+                      roomId: data.roomId,
+                      avatar: data.avatar,
+                      nameUser: data.nameUser,
+                    };
+                    dispatch(addMessage(newMessage));
+                
+        }
+        if (data.type === 'update' && data.roomId === selectedChat) {
+           console.log('Message updated:', data._id, data.content);    
+           const newMesaage = {
+              _id: data._id,
+              content: data.content,
+              roomId: data.roomId
+           }
+           dispatch(updateChat(newMesaage));
+        }
+  
+        if (data.type === 'delete' && data.roomId === selectedChat) {
+          setMessages((prevMessages) => {
+            return prevMessages.filter((message) => message._id !== data._id); // Lọc bỏ message đã xóa
+          });
+          console.log('Message deleted:', data._id);
         }
       });
-
+  
       // Cleanup
       return () => {
         socket.off('server-message');
       };
     }
   }, [socket, selectedChat]);
+  
 
 
 
   // save message
-  const saveMessage = (roomId: string, userId: string, messageContent: string, nameUser: string, timestamp: string, avatar: string) => {
+  const saveMessage = (roomId: string, userId: string, messageContent: string, nameUser: string, timestamp: string, avatar: string, _id: string) => {
     setMessages(prevMessages => [
       ...prevMessages,
       {
-
+        _id,
         roomId: parseInt(roomId),
         senderId: userId,
         content: messageContent,
@@ -121,7 +152,7 @@ export default function ChatMessages() {
         avatar
       }
     ]);
-    console.log('Message saved:', messageContent);
+    console.log('Message saved:', _id);
   };
 
 
@@ -162,9 +193,7 @@ export default function ChatMessages() {
           setShowNewMessageAlert(true);
         }
       }
-
       setMessages(response.data || []);
-      console.log("Messages:", response.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -180,6 +209,8 @@ export default function ChatMessages() {
   useEffect(() => {
     getMessages();
   }, [checkChatUpdate]);
+
+
   // Cuộn xuống khi cần
   useEffect(() => {
     if (shouldScroll) {
@@ -242,6 +273,7 @@ export default function ChatMessages() {
                 time={message.timestamp}
                 content={message.content}
                 isPinned={message.isPinned ?? false}
+                roomId={message.roomId}
               />
             ) : (
               <RecieverMessage
@@ -253,11 +285,12 @@ export default function ChatMessages() {
                 content={message.content}
                 time={message.timestamp}
                 isPinned={message.isPinned ?? false}
+                roomId={message.roomId}
               />
             )}
 
-          
-         
+
+
           </div>
         );
       })}

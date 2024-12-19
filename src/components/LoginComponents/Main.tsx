@@ -94,7 +94,7 @@ export default function Main() {
         window.location.href = '/home/message';
       }
       else if(role === 3){
-        window.location.href = '/home';
+        window.location.href = '/home/admin';
       }
       else{
         window.location.href = '/404-page'; // Redirect to 404 page in case of error
@@ -133,7 +133,7 @@ export default function Main() {
         const errors = error.response.data.errors;
         setErrorMessage(errors[0]);
       } else {
-        setErrorMessage('An unexpected error occurred');
+        setErrorMessage('Invalid username or password');
       }
     }
   };

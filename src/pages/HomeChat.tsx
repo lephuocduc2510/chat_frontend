@@ -36,12 +36,15 @@ interface User {
 interface Chat {
   roomId: string;
   name: string;
-  latestMessage?: string
+  lastMessage?: string
+  sendAt: string
   createdDate: string;
   notify?: boolean;
   isActive: boolean;
   groupLogo?: string
   description?: string;
+  senderId: string;
+  senderName: string;
   users: User[];
 }
 
@@ -69,34 +72,34 @@ const HomeChat: React.FC = () => {
 
 
 
-  useEffect(() => {
-    // Lắng nghe sự kiện `new-message`
-    if (socket) {
-      socket.on("server-message", (data) => {
-        if (data.type === 'chat') {
-          console.log("🚀 New message received:", data);
+  // useEffect(() => {
+  //   // Lắng nghe sự kiện `new-message`
+  //   if (socket) {
+  //     socket.on("server-message", (data) => {
+  //       if (data.type === 'chat') {
+  //         console.log("🚀 New message received to homechat:", data);
 
-          // Gửi tin nhắn vào Redux store
-          const newMessage = {
-            userId: data.idUser,
-            content: data.message,
-            fileUrl: data.fileUrl,
-            sentAt: data.timeStamp,
-            roomId: data.roomId,
-            avatar: data.avatar,
-          };
-          dispatch(addMessage(newMessage));
-        }
-      });
+  //         // Gửi tin nhắn vào Redux store
+  //         const newMessage = {
+  //           userId: data.idUser,
+  //           content: data.message,
+  //           fileUrl: data.fileUrl,
+  //           sentAt: data.timeStamp,
+  //           roomId: data.roomId,
+  //           avatar: data.avatar,
+  //         };
+  //         dispatch(addMessage(newMessage));
+  //       }
+  //     });
 
 
-      // Dọn dẹp kết nối khi component unmount
-      return () => {
-        socket.off("server-message");
-      };
+  //     // Dọn dẹp kết nối khi component unmount
+  //     return () => {
+  //       socket.off("server-message");
+  //     };
 
-    }
-  }, [dispatch]);
+  //   }
+  // }, [dispatch]);
   
  
 
